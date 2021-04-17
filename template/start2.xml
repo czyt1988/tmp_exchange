@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root name="Start2代">
+    <!-- 系统参数设置 -->
+    <!-- node说明，name为界面显示的内容，ds为数据源的字段名,suffix为显示的后缀，一般为单位 -->
+    <system>
+        <group name="分组1">
+            <node name="冷暖模式设定" ds="冷暖模式设定" suffix="" />
+            <node name="整机制冷能力需求" ds="整机制冷能力需求" suffix="" />
+        </group>
+    </system>
+    <module>
+        <node name="额定容量" ds="RatCap" suffix="" />
+        <node name="室外环境温度" ds="ODEnvTemp" suffix="℃" />
+        <node name="外机运行功率" ds="OduRunPower" suffix="W" />
+        <node name="本机分配能力" ds="AssignedCap" suffix="" />
+    </module>
+    <!-- 内机数据以列显示，每个node就是一列，会根据can ip进行区分，所以idu列一定要有个node为can ip     -->
+    <idu>
+        <node name="IP" ds="Canip" suffix="" />
+        <node name="开关机状态" ds="OnOffSta" suffix="" />
+        <node name="模式" ds="IDUMode" suffix="" />
+    </idu>
+</root>
