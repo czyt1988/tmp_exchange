@@ -88,11 +88,11 @@
      <property name="orientation">
       <enum>Qt::Vertical</enum>
      </property>
-     <widget class="QSplitter" name="splitter">
+     <widget class="QSplitter" name="splitterSysModule">
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>
-      <widget class="QWidget" name="">
+      <widget class="QWidget" name="layoutWidget">
        <layout class="QVBoxLayout" name="verticalLayout_2">
         <property name="spacing">
          <number>1</number>
@@ -105,11 +105,15 @@
          </widget>
         </item>
         <item>
-         <widget class="QTreeView" name="treeViewSystem"/>
+         <widget class="QTreeView" name="treeViewSystem">
+          <property name="headerHidden">
+           <bool>false</bool>
+          </property>
+         </widget>
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="">
+      <widget class="QWidget" name="layoutWidget">
        <layout class="QVBoxLayout" name="verticalLayout_3">
         <property name="spacing">
          <number>1</number>
@@ -158,8 +162,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>702</width>
-             <height>285</height>
+             <width>442</width>
+             <height>229</height>
             </rect>
            </property>
           </widget>
@@ -168,7 +172,7 @@
        </layout>
       </widget>
      </widget>
-     <widget class="QWidget" name="">
+     <widget class="QWidget" name="layoutWidget">
       <layout class="QVBoxLayout" name="verticalLayout">
        <property name="spacing">
         <number>1</number>

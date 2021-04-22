@@ -7,6 +7,7 @@
 #include <QDomElement>
 #include <QStandardItemModel>
 #include <QHash>
+#include "GIDUTableModel.h"
 
 /**
  * @brief 模板描述，界面根据模板生成
@@ -22,26 +23,40 @@ public:
     //
     void clear();
 
+    //模板名
+    QString name() const;
+
     //
     QStandardItemModel *getSystemModel() const;
 
     //
-    QStandardItemModel *getIduModel() const;
+    GIDUTableModel *getIduModel() const;
 
     //
     const QList<GNodeInfo>& getModuleInfoList() const;
 
-    //解析
-    void parse();
+    //更新数据
+    void updateValue(const GNodeInfo& value);
+
+private:
+    void parse(QDomDocument& doc);
+    void loadSystemInfo(QDomElement& root);
+    bool loadSystemItemFromNode(QDomElement& nodeitem, QStandardItem *parItem);
+    void loadIduInfo(QDomElement& root);
+    bool loadIduItemFromNode(QDomElement& nodeitem);
+    void loadModuleInfo(QDomElement& root);
+    bool loadModuleItemFromNode(QDomElement& nodeitem);
 
 private:
     QString mName;///< 模板名
-    QDomDocument mDoc;
+
+    QList<GNodeInfo> mSystemInfo;
     QList<GNodeInfo> mModuleInfo;
+    QList<GNodeInfo> mIduInfo;
     QStandardItemModel *mSystemModel;
-    QStandardItemModel *mIduModel;
-    QHash<QStandardItem *, GNodeInfo> mItemToNode;
-    QHash<GNodeInfo, QStandardItem *> mNodeToItem;
+    GIDUTableModel *mIduModel;
+    QHash<QStandardItem *, GNodeInfo> mValueItemToNode;
+    QHash<GNodeInfo, QStandardItem *> mNodeToItemValue;
 };
 
 #endif // GTEMPLATE_H

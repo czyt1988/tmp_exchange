@@ -5,12 +5,12 @@
 #-------------------------------------------------
 
 QT       += core gui xml
-
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
+include($$PWD/../common.pri)
 TARGET = VRFBigDataView
 TEMPLATE = app
-
+DESTDIR = $${BIN_DIR}
 # The following define makes your compiler emit warnings if you use
 # any feature of Qt which has been marked as deprecated (the exact warnings
 # depend on your compiler). Please consult the documentation of the
@@ -27,12 +27,27 @@ SOURCES += \
         main.cpp \
         MainWidget.cpp \
     GNodeInfo.cpp \
-    GTemplate.cpp
+    GTemplate.cpp \
+    GIDUTableModel.cpp \
+    GItemDisplayWidget.cpp \
+    GModuleValueView.cpp \
+    GHvacDataFileIO.cpp \
+    SACsvStream.cpp
 
 HEADERS += \
         MainWidget.h \
     GNodeInfo.h \
-    GTemplate.h
+    GTemplate.h \
+    GIDUTableModel.h \
+    SATable.h \
+    GItemDisplayWidget.h \
+    GModuleValueView.h \
+    GHvacDataFileIO.h \
+    SACsvStream.h
 
 FORMS += \
-        MainWidget.ui
+        MainWidget.ui \
+    GItemDisplayWidget.ui \
+    GModuleValueView.ui
+
+include($$PWD/../quazip-0.7.3/use_quazip.pri)
