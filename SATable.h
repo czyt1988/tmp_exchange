@@ -11,30 +11,30 @@
  * @brief 系列数据
  */
 template<typename T>
-class SASeries : public QVector<T>
+class SAVector : public QVector<T>
 {
 public:
-    SASeries() : QVector<T>()
+    SAVector() : QVector<T>()
     {
     }
 
 
-    SASeries(int size) : QVector<T>(size)
+    SAVector(int size) : QVector<T>(size)
     {
     }
 
 
-    SASeries(int size, const T& t) : QVector<T>(size, t)
+    SAVector(int size, const T& t) : QVector<T>(size, t)
     {
     }
 
 
-    SASeries(std::initializer_list<T> args) : QVector<T>(args)
+    SAVector(std::initializer_list<T> args) : QVector<T>(args)
     {
     }
 
 
-    SASeries(const QString& n) : QVector<T>(), mName(n)
+    SAVector(const QString& n) : QVector<T>(), mName(n)
     {
     }
 
@@ -49,28 +49,28 @@ private:
 };
 
 template<typename T>
-const QString& SASeries<T>::name() const
+const QString& SAVector<T>::name() const
 {
     return (mName);
 }
 
 
 template<typename T>
-QString& SASeries<T>::name()
+QString& SAVector<T>::name()
 {
     return (mName);
 }
 
 
 template<typename T>
-void SASeries<T>::setName(const QString& n)
+void SAVector<T>::setName(const QString& n)
 {
     mName = n;
 }
 
 
 template<typename T>
-QString SASeries<T>::getName() const
+QString SAVector<T>::getName() const
 {
     return (mName);
 }
@@ -87,9 +87,15 @@ public:
         FixedMode,      ///< 固定模式，表的列不会随着行的变化而变化(默认)
         ExpandMode      ///< 扩展模式，表的列是浮动的，如果插入一行比原来要宽，会自动扩充表的列数
     };
-    typedef SASeries<T>			RowType;
-    typedef std::shared_ptr<RowType>	RowPtr;
-    typedef SASeries<RowPtr>		TableType;
+    typedef T				Type;
+    typedef SAVector<T>			SeriesType;
+    typedef std::shared_ptr<SeriesType>	SeriesPtr;
+    typedef SARowTable<T>			TableType;
+    typedef std::shared_ptr<TableType>	TablePtr;
+    static SeriesPtr makeSeries();
+    static SeriesPtr makeSeries(const QString& n);
+    static SeriesPtr makeSeries(std::initializer_list<T> args);
+    static TablePtr makeTable();
 
     SARowTable();
     SARowTable(int rows, int columns);
@@ -97,20 +103,20 @@ public:
     const T& at(int r, int c) const;
     T& at(int r, int c);
     T cell(int r, int c) const;
-    void appendRow(RowPtr row);
+    void appendRow(SeriesPtr row);
     void appendRow(std::initializer_list<T> args, const QString& n);
 
     template<typename Ite1, typename Ite2>
     void appendColumn(Ite1 b, Ite2 e);
     void appendColumn(std::initializer_list<T> args);
-    static RowPtr makeRow();
-    static RowPtr makeRow(const QString& n);
-    static RowPtr makeRow(std::initializer_list<T> args);
-    int nameToIndex(const QString& n) const;
-    RowPtr& row(int r);
-    const RowPtr& row(int r) const;
-    RowPtr& row(const QString& n);
-    const RowPtr& row(const QString& n) const;
+    int nameToIndex(const QString& n, Qt::CaseSensitivity cs = Qt::CaseInsensitive) const;
+    SeriesPtr& row(int r);
+    const SeriesPtr& row(int r) const;
+    SeriesPtr& row(const QString& n);
+    const SeriesPtr& row(const QString& n) const;
+
+    //返回一列数据，返回一个SeriesPtr，这个seriesPtr的写操作不会影响table
+    SeriesPtr colunm(int c) const;
 
     /**
      * @brief 以最大列数进行列数修正，保证所有行同列
@@ -161,11 +167,111 @@ public:
      */
     void setRowNames(const QStringList& ns);
 
+    /**
+     * @brief 提取某个值等于value作为新表
+     * @param field
+     * @param value
+     * @param cs
+     * @return
+     */
+    TablePtr takeByValue(const QString& field, T value, Qt::CaseSensitivity cs = Qt::CaseInsensitive) const;
+
+    /**
+     * @brief groupby
+     * @param field
+     * @param cs
+     * @return
+     */
+    QPair<QList<TablePtr>, QList<T> > groupBy(const QString& field, Qt::CaseSensitivity cs = Qt::CaseInsensitive) const;
+
 private:
-    TableType m_d;
+    SAVector<SeriesPtr> m_d;
     size_t m_columns;
     Mode m_mode;
+    SeriesPtr m_nullseries;
 };
+
+namespace SA {
+template<typename T>
+typename SARowTable<T>::TablePtr takeByValue(const SARowTable<T>& table, const QString& field, T value, Qt::CaseSensitivity cs = Qt::CaseInsensitive)
+{
+    const int r = table.nameToIndex(field, cs);
+
+    typename SARowTable<T>::TablePtr res = SARowTable<T>::makeTable();
+
+    res->setName(table.getName());
+    res->setRowNames(table.rowNames());
+    int csize = table.columnCount();
+
+    for (int i = 0; i < csize; ++i)
+    {
+        if (table.cell(r, i) == value) {
+            typename SARowTable<T>::SeriesPtr col = table.colunm(i);
+            res->appendColumn(col->begin(), col->end());
+        }
+    }
+    return (res);
+}
+
+
+template<typename T>
+typename SARowTable<T>::TablePtr takeByValue(const SARowTable<T>& table, int r, T value)
+{
+    typename SARowTable<T>::TablePtr res = SARowTable<T>::makeTable();
+
+    res->setName(table.getName());
+    res->setRowNames(table.rowNames());
+    int csize = table.columnCount();
+
+    for (int i = 0; i < csize; ++i)
+    {
+        if (table.cell(r, i) == value) {
+            typename SARowTable<T>::SeriesPtr col = table.colunm(i);
+            res->appendColumn(col->begin(), col->end());
+        }
+    }
+    return (res);
+}
+
+
+/**
+ * @brief groupby 对某个字段执行group by操作
+ * @param table
+ * @param field
+ * @return 返回一个pair，first：group by后的结构表，second，group by的结果
+ */
+template<typename T>
+QPair<QList<typename SARowTable<T>::TablePtr>, QList<T> > groupby(const SARowTable<T>& table, const QString& field, Qt::CaseSensitivity cs = Qt::CaseInsensitive)
+{
+    QList<typename SARowTable<T>::TablePtr> restables;
+    QList<T> gr;
+
+    int rindex = table.nameToIndex(field, cs);
+
+    Q_ASSERT_X(rindex >= 0, "groupby", "unknow field");
+    typename SARowTable<T>::SeriesPtr r = table.row(rindex);
+    if (r == nullptr) {
+        return (qMakePair(restables, gr));
+    }
+    gr = r->toList().toSet().toList();
+    std::sort(gr.begin(), gr.end());
+    for (T v : gr)
+    {
+        restables.append(takeByValue(table, rindex, v));
+    }
+    return (qMakePair(restables, gr));
+}
+
+
+template<typename T>
+void orderBy(SARowTable<T>& table, const QString& field, Qt::CaseSensitivity cs = Qt::CaseInsensitive)
+{
+    const int r = table.nameToIndex(field, cs);
+    SARowTable<T>::SeriesPtr r = table.row(r);
+
+    Q_ASSERT_X(r != nullptr, "orderBy", "unknow field");
+}
+}
 
 
 template<typename T>
@@ -181,7 +287,7 @@ SARowTable<T>::SARowTable(int rows, int columns) : m_mode(FixedMode)
     m_d.reserve(rows);
     for (int i = 0; i < rows; ++i)
     {
-        m_d.push_back(RowType(columns));
+        m_d.push_back(SeriesType(columns));
     }
     m_columns = columns;
 }
@@ -196,7 +302,7 @@ template<typename T>
 void SARowTable<T>::resize(int r, int c)
 {
     m_d.resize(r);
-    for (RowType& row : m_d)
+    for (SeriesType& row : m_d)
     {
         row.resize(c);
     }
@@ -227,7 +333,7 @@ template<typename T>
 T SARowTable<T>::cell(int r, int c) const
 {
     if (r < m_d.size()) {
-        const RowPtr& rr = row(r);
+        const SeriesPtr& rr = row(r);
         if (c < rr->size()) {
             return (rr->at(c));
         }
@@ -237,7 +343,7 @@ T SARowTable<T>::cell(int r, int c) const
 
 
 template<typename T>
-void SARowTable<T>::appendRow(RowPtr row)
+void SARowTable<T>::appendRow(SeriesPtr row)
 {
     size_t s = row->size();
 
@@ -262,7 +368,7 @@ void SARowTable<T>::appendRow(RowPtr row)
 template<typename T>
 void SARowTable<T>::appendRow(std::initializer_list<T> args, const QString& n)
 {
-    RowPtr r = makeRow(args);
+    SeriesPtr r = makeSeries(args);
 
     r->setName(n);
     appendRow(r);
@@ -298,34 +404,41 @@ void SARowTable<T>::appendColumn(std::initializer_list<T> args)
 
 
 template<typename T>
-typename SARowTable<T>::RowPtr SARowTable<T>::makeRow(const QString& n)
+typename SARowTable<T>::SeriesPtr SARowTable<T>::makeSeries(const QString& n)
 {
-    return (std::make_shared<RowType>(n));
+    return (std::make_shared<SeriesType>(n));
 }
 
 
 template<typename T>
-typename SARowTable<T>::RowPtr SARowTable<T>::makeRow(std::initializer_list<T> args)
+typename SARowTable<T>::SeriesPtr SARowTable<T>::makeSeries(std::initializer_list<T> args)
 {
-    return (std::make_shared<RowType>(args));
+    return (std::make_shared<SeriesType>(args));
 }
 
 
 template<typename T>
-typename SARowTable<T>::RowPtr SARowTable<T>::makeRow()
+typename SARowTable<T>::TablePtr SARowTable<T>::makeTable()
 {
-    return (std::make_shared<RowType>());
+    return (std::make_shared<typename SARowTable<T>::TableType>());
 }
 
 
 template<typename T>
-int SARowTable<T>::nameToIndex(const QString& n) const
+typename SARowTable<T>::SeriesPtr SARowTable<T>::makeSeries()
+{
+    return (std::make_shared<SeriesType>());
+}
+
+
+template<typename T>
+int SARowTable<T>::nameToIndex(const QString& n, Qt::CaseSensitivity cs) const
 {
     int r = rowCount();
 
     for (int i = 0; i < r; ++i)
     {
-        if (row(i)->name() == n) {
+        if (row(i)->name().compare(n, cs) == 0) {
             return (i);
         }
     }
@@ -339,7 +452,7 @@ int SARowTable<T>::nameToIndex(const QString& n) const
  * @return
  */
 template<typename T>
-typename SARowTable<T>::RowPtr& SARowTable<T>::row(int r)
+typename SARowTable<T>::SeriesPtr& SARowTable<T>::row(int r)
 {
     return (m_d[r]);
 }
@@ -351,14 +464,26 @@ typename SARowTable<T>::RowPtr& SARowTable<T>::row(int r)
  * @return
  */
 template<typename T>
-const typename SARowTable<T>::RowPtr& SARowTable<T>::row(int r) const
+const typename SARowTable<T>::SeriesPtr& SARowTable<T>::row(int r) const
 {
     return (m_d[r]);
 }
 
 
 template<typename T>
-typename SARowTable<T>::RowPtr& SARowTable<T>::row(const QString& n)
+typename SARowTable<T>::SeriesPtr& SARowTable<T>::row(const QString& n)
+{
+    int r = nameToIndex(n);
+
+    if ((r < 0) || (r > rowCount())) {
+        return (m_nullseries);
+    }
+    return (row(r));
+}
+
+
+template<typename T>
+const typename SARowTable<T>::SeriesPtr& SARowTable<T>::row(const QString& n) const
 {
     int r = nameToIndex(n);
 
@@ -370,14 +495,16 @@ typename SARowTable<T>::RowPtr& SARowTable<T>::row(const QString& n)
 
 
 template<typename T>
-const typename SARowTable<T>::RowPtr& SARowTable<T>::row(const QString& n) const
+typename SARowTable<T>::SeriesPtr SARowTable<T>::colunm(int c) const
 {
-    int r = nameToIndex(n);
+    int rsize = rowCount();
+    SeriesPtr col = std::make_shared<SeriesType>(rsize);
 
-    if ((r < 0) || (r > rowCount())) {
-        return (nullptr);
+    for (int r = 0; r < rsize; ++r)
+    {
+        col->operator [](r) = cell(r, c);
     }
-    return (row(r));
+    return (col);
 }
 
 
@@ -386,13 +513,13 @@ void SARowTable<T>::fixSize()
 {
     std::vector<int> ss;
 
-    for (const RowPtr& r : m_d)
+    for (const SeriesPtr& r : m_d)
     {
         ss.push_back(r->size());
     }
     int maxsize = *(std::max_element(ss.begin(), ss.end()));
 
-    for (RowPtr& r : m_d)
+    for (SeriesPtr& r : m_d)
     {
         if (r->size() < maxsize) {
             r->resize(maxsize);
@@ -441,14 +568,14 @@ void SARowTable<T>::clear()
 template<typename T>
 void SARowTable<T>::setName(const QString& n)
 {
-    m_d->setName(n);
+    m_d.setName(n);
 }
 
 
 template<typename T>
 QString SARowTable<T>::getName() const
 {
-    return (m_d->getName());
+    return (m_d.getName());
 }
 
 
@@ -457,7 +584,7 @@ QStringList SARowTable<T>::rowNames() const
 {
     QStringList r;
 
-    for (RowPtr p : m_d)
+    for (SeriesPtr p : m_d)
     {
         r.append(p->getName());
     }
@@ -475,10 +602,24 @@ void SARowTable<T>::setRowNames(const QStringList& ns)
         if (i < rowCount()) {
             row(i)->setName(ns[i]);
         }else{
-            RowPtr r = makeRow(ns[i]);
+            SeriesPtr r = makeSeries(ns[i]);
             appendRow(r);
         }
     }
+}
+
+
+template<typename T>
+typename SARowTable<T>::TablePtr SARowTable<T>::takeByValue(const QString& field, T value, Qt::CaseSensitivity cs) const
+{
+    return (SA::takeByValue(*this, field, value, cs));
+}
+
+
+template<typename T>
+QPair<QList<typename SARowTable<T>::TablePtr>, QList<T> > SARowTable<T>::groupBy(const QString& field, Qt::CaseSensitivity cs) const
+{
+    return (SA::groupby(*this, field, cs));
 }
 
 
@@ -497,7 +638,7 @@ QDebug operator<<(QDebug debug, const SARowTable<T>& t)
 
     for (int i = 0; i < rs; ++i)
     {
-        typename SARowTable<T>::RowPtr r = t.row(i);
+        typename SARowTable<T>::SeriesPtr r = t.row(i);
         QString name = r->getName();
         if (name.size() < maxlen) {
             name.resize(maxlen, ' ');

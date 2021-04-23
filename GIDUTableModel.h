@@ -10,8 +10,8 @@ class GIDUTableModel : public QAbstractTableModel
 {
 public:
     GIDUTableModel(QObject *par = nullptr);
-    typedef SARowTable<QVariant>		GTable;
-    typedef SARowTable<QVariant>::RowType	TableRow;
+    typedef SARowTable<QVariant>			GTable;
+    typedef SARowTable<QVariant>::SeriesType	TableRow;
     virtual QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
     virtual int columnCount(const QModelIndex& parent = QModelIndex()) const;
     virtual int rowCount(const QModelIndex& parent = QModelIndex()) const;

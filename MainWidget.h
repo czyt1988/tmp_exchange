@@ -3,6 +3,9 @@
 #include <QtWidgets/QWidget>
 #include "GTemplate.h"
 #include "GModuleValueView.h"
+#include "GHvacDataFileIO.h"
+#include <QThread>
+
 namespace Ui {
 class MainWidget;
 }
@@ -27,8 +30,26 @@ private slots:
 
     void on_comboBoxTemplate_currentIndexChanged(int index);
 
+    void onFileReaded(QList<GHvacDataFileIO::TablePtr> tables);
+
+    void onIOErrRec(const QString& msg);
+
 private:
     void deleteTemplates();
+
+signals:
+
+    /**
+     * @brief 打开文件
+     * @param filepath
+     */
+    void openFile(const QString& filepath);
+
+    /**
+     * @brief message
+     * @param msg
+     */
+    void message(const QString& msg);
 
 private:
     Ui::MainWidget *ui;

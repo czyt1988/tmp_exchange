@@ -6,7 +6,7 @@
 #include <QScopedPointer>
 #include <QDebug>
 #include <QFileDialog>
-#include "GHvacDataFileIO.h"
+
 MainWidget::MainWidget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::MainWidget)
@@ -86,10 +86,25 @@ void MainWidget::changeEvent(QEvent *e)
  */
 void MainWidget::on_pushButtonBrower_clicked()
 {
-    GHvacDataFileIO f;
+    QString filepath = QFileDialog::getOpenFileName(this, QStringLiteral("选择数据文件"), "", "数据文件 (*.zip)");
 
-    f.setFileName(QStringLiteral("./start2代.zip"));
-    qDebug() << f.open();
+    if (filepath.isEmpty()) {
+        return;
+    }
+    ui->pushButtonBrower->setDisabled(true);
+    GHvacDataFileIO *io = new GHvacDataFileIO();
+    QThread *readThread = new QThread();
+
+    io->moveToThread(readThread);
+    connect(readThread, &QThread::finished, io, &GHvacDataFileIO::deleteLater);
+    connect(readThread, &QThread::finished, io, &QThread::deleteLater);
+    //业务逻辑
+    connect(this, &MainWidget::openFile, io, &GHvacDataFileIO::open);
+    connect(io, &GHvacDataFileIO::readed, this, &MainWidget::onFileReaded);
+    connect(io, &GHvacDataFileIO::message, this, &MainWidget::message);
+    readThread->start();
+    emit message(QStringLiteral("正打开:%1").arg(filepath));
+    emit openFile(filepath);
 }
 
 
@@ -110,6 +125,18 @@ void MainWidget::on_comboBoxTemplate_currentIndexChanged(int index)
     GTemplate *t = mTemplate.at(index);
 
     setTemplate(t);
+}
+
+
+void MainWidget::onFileReaded(QList<GHvacDataFileIO::TablePtr> tables)
+{
+    ui->pushButtonBrower->setDisabled(false);
+}
+
+
+void MainWidget::onIOErrRec(const QString& msg)
+{
+    ui->pushButtonBrower->setDisabled(false);
 }
 
 

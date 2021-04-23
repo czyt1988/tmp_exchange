@@ -32,7 +32,9 @@ SOURCES += \
     GItemDisplayWidget.cpp \
     GModuleValueView.cpp \
     GHvacDataFileIO.cpp \
-    SACsvStream.cpp
+    SACsvStream.cpp \
+    SASeries.cpp \
+    MainWindow.cpp
 
 HEADERS += \
         MainWidget.h \
@@ -43,11 +45,14 @@ HEADERS += \
     GItemDisplayWidget.h \
     GModuleValueView.h \
     GHvacDataFileIO.h \
-    SACsvStream.h
+    SACsvStream.h \
+    SASeries.h \
+    MainWindow.h
 
 FORMS += \
         MainWidget.ui \
     GItemDisplayWidget.ui \
-    GModuleValueView.ui
+    GModuleValueView.ui \
+    MainWindow.ui
 
 include($$PWD/../quazip-0.7.3/use_quazip.pri)
