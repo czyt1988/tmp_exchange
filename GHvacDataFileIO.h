@@ -7,6 +7,7 @@
 #include "quazip.h"
 #include <QDir>
 #include "SATable.h"
+#include "GHvacDataInfo.h"
 class GHvacDataFileIO : public QObject
 {
     Q_OBJECT
@@ -23,6 +24,7 @@ public:
     ~GHvacDataFileIO();
     void setFileName(const QString& filepath);
     Error getError() const;
+    void setDatetimeField(const QString& f);
 
 public slots:
     void open(const QString& filepath);
@@ -38,7 +40,7 @@ signals:
     /**
      * @brief 读取完表格发送
      */
-    void readed(QList<TablePtr> tables);
+    void readed(GHvacDataInfo info);
 
     /**
      * @brief message
@@ -55,12 +57,15 @@ private:
     //对时间进行对齐
     void unionDateTime();
 
+    //对时间排序
+    void orderByDatetime();
+
 private:
     QString mFileName;
     std::shared_ptr<QuaZip> mZip;
     bool mIsOpen;
-    QStringList mFilesList;
-    QList<TablePtr> mTables;
+    GHvacDataInfo mHvacInfo;
 };
 Q_DECLARE_METATYPE(QList<GHvacDataFileIO::TablePtr>)
+Q_DECLARE_METATYPE(QList<int>)
 #endif // GHVACDATAFILEIO_H

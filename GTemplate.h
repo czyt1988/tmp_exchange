@@ -34,7 +34,8 @@ public:
 
     //
     const QList<GNodeInfo>& getModuleInfoList() const;
-
+    const QList<GNodeInfo>& getSystemInfoList() const;
+    const QList<GNodeInfo>& getIduInfoList() const;
     //更新数据
     void updateValue(const GNodeInfo& value);
 

@@ -61,6 +61,18 @@ void GModuleValueView::clear()
 }
 
 
+void GModuleValueView::updateValue(const GNodeInfo& n)
+{
+    auto i = mNodeToWidget.find(n);
+
+    if (i == mNodeToWidget.end()) {
+        qDebug() << "can not find " << n;
+        return;
+    }
+    i.value()->setValue(n.mDisplayValue);
+}
+
+
 void GModuleValueView::changeEvent(QEvent *e)
 {
     QWidget::changeEvent(e);

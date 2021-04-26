@@ -21,6 +21,7 @@ public:
     void append(const GNodeInfo& info);
     void setNodeInfos(const QList<GNodeInfo>& infos);
     void clear();
+    void updateValue(const GNodeInfo& n);
 
 protected:
     void changeEvent(QEvent *e);

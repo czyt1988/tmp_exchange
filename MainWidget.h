@@ -5,7 +5,8 @@
 #include "GModuleValueView.h"
 #include "GHvacDataFileIO.h"
 #include <QThread>
-
+#include <QTimer>
+#include "GHvacDataInfo.h"
 namespace Ui {
 class MainWidget;
 }
@@ -20,6 +21,16 @@ public:
     void setTemplate(GTemplate *t);
     void loadTemplate();
 
+    enum Speed {
+        Speed1x		= 1
+        , Speed2x	= 2
+        , Speed3x	= 3
+    };
+    enum Mode {
+        None
+        , Stopped
+        , Runing
+    };
 protected:
     void changeEvent(QEvent *e);
 
@@ -30,12 +41,25 @@ private slots:
 
     void on_comboBoxTemplate_currentIndexChanged(int index);
 
-    void onFileReaded(QList<GHvacDataFileIO::TablePtr> tables);
+    void onFileReaded(GHvacDataInfo info);
 
     void onIOErrRec(const QString& msg);
 
+    void onTimeout();
+
+    void updateValue(int toSecsSinceEpoch);
+    void on_pushButtonSpeed_clicked();
+
+
+    void on_horizontalSlider_valueChanged(int value);
+
+    void valueRender(const QJsonObject& obj);
+
 private:
     void deleteTemplates();
+    void setRunMode();
+    void setStopMode();
+    void setSpeed(Speed s);
 
 signals:
 
@@ -54,8 +78,12 @@ signals:
 private:
     Ui::MainWidget *ui;
     QList<GTemplate *> mTemplate;
+    GHvacDataInfo mHvacInfo;
     GTemplate *mCurrentTemplate;
     GModuleValueView *mModuleWidget;
+    QTimer mTimer;
+    Speed mCurrentSpeed;
+    Mode mMode;
 };
 
 #endif // MAINWIDGET_H

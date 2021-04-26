@@ -75,6 +75,16 @@ const QList<GNodeInfo>& GTemplate::getModuleInfoList() const
     return (mModuleInfo);
 }
 
+const QList<GNodeInfo> &GTemplate::getSystemInfoList() const
+{
+    return mSystemInfo;
+}
+
+const QList<GNodeInfo> &GTemplate::getIduInfoList() const
+{
+    return mIduInfo;
+}
+
 
 void GTemplate::updateValue(const GNodeInfo& value)
 {

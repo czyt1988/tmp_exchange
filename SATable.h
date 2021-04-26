@@ -6,6 +6,8 @@
 #include <QDebug>
 //std
 #include <memory>
+//SA
+#include "SAAlgorithm.h"
 
 /**
  * @brief 系列数据
@@ -87,11 +89,13 @@ public:
         FixedMode,      ///< 固定模式，表的列不会随着行的变化而变化(默认)
         ExpandMode      ///< 扩展模式，表的列是浮动的，如果插入一行比原来要宽，会自动扩充表的列数
     };
-    typedef T				Type;
-    typedef SAVector<T>			SeriesType;
-    typedef std::shared_ptr<SeriesType>	SeriesPtr;
-    typedef SARowTable<T>			TableType;
-    typedef std::shared_ptr<TableType>	TablePtr;
+    typedef T					Type;
+    typedef SAVector<T>				SeriesType;
+    typedef std::shared_ptr<SeriesType>		SeriesPtr;
+    typedef typename SAVector<T>::iterator		SeriesIterator;
+    typedef typename SAVector<T>::const_iterator	SeriesConstIterator;
+    typedef SARowTable<T>				TableType;
+    typedef std::shared_ptr<TableType>		TablePtr;
     static SeriesPtr makeSeries();
     static SeriesPtr makeSeries(const QString& n);
     static SeriesPtr makeSeries(std::initializer_list<T> args);
@@ -184,6 +188,23 @@ public:
      */
     QPair<QList<TablePtr>, QList<T> > groupBy(const QString& field, Qt::CaseSensitivity cs = Qt::CaseInsensitive) const;
 
+    /**
+     * @brief orderBy
+     * @param sn
+     */
+    void orderBy(const QString& sn, Qt::CaseSensitivity cs = Qt::CaseInsensitive);
+
+    /**
+     * @brief 查找第一个大于或等于某个元素的位置
+     * @note 需要确保已经进行过排序
+     * @param v
+     * @return
+     */
+    QPair<T, int> lowerBound(const T& v, const QString& sortedfield, Qt::CaseSensitivity cs = Qt::CaseInsensitive) const;
+    QPair<T, int> lowerBound(const T& v, int r) const;
+    QPair<T, int> upperBound(const T& v, const QString& sortedfield, Qt::CaseSensitivity cs = Qt::CaseInsensitive) const;
+    QPair<T, int> upperBound(const T& v, int r) const;
+
 private:
     SAVector<SeriesPtr> m_d;
     size_t m_columns;
@@ -264,12 +285,76 @@ QPair<QList<typename SARowTable<T>::TablePtr>, QList<T> > groupby(const SARowTab
 
 
 template<typename T>
+class ValueWithIndex {
+public:
+    ValueWithIndex() : index(-1)
+    {
+    }
+
+
+    ValueWithIndex(const T& v, int i) : value(v), index(i)
+    {
+    }
+
+
+    T value;
+    int index;
+};
+
+template<typename T>
+bool operator <(const ValueWithIndex<T>& a, const ValueWithIndex<T>& b)
+{
+    return (a.value < b.value);
+}
+
+
+/**
+ * @brief 把序列转换为带序号的序列
+ * @param p
+ * @return 用于带序号的排序用
+ */
+template<typename T>
+std::shared_ptr<SAVector<ValueWithIndex<T> > > makeIndexSeries(typename SARowTable<T>::SeriesPtr p)
+{
+    std::shared_ptr<SAVector<ValueWithIndex<T> > > res = std::make_shared<SAVector<ValueWithIndex<T> > >();
+
+    res->setName(p->getName());
+    const int s = p->size();
+
+    res->reserve(s);
+    for (int i = 0; i < s; ++i)
+    {
+        res->push_back(ValueWithIndex<T>(p->at(i), i));
+    }
+    return (res);
+}
+
+
+template<typename T>
 void orderBy(SARowTable<T>& table, const QString& field, Qt::CaseSensitivity cs = Qt::CaseInsensitive)
 {
     const int r = table.nameToIndex(field, cs);
-    SARowTable<T>::SeriesPtr r = table.row(r);
 
-    Q_ASSERT_X(r != nullptr, "orderBy", "unknow field");
+    typename SARowTable<T>::SeriesPtr row = table.row(r);
+    Q_ASSERT_X(row != nullptr, "orderBy", "unknow field");
+
+    auto ordser = makeIndexSeries<T>(row);
+
+    std::sort(ordser->begin(), ordser->end());
+    int rowcount = table.rowCount();
+
+    //开始逐一转换
+    for (int rc = 0; rc < rowcount; ++rc)
+    {
+        typename SARowTable<T>::SeriesPtr series = table.row(rc);
+        typename SARowTable<T>::SeriesPtr ns = SARowTable<T>::makeSeries(series->getName());
+        ns->reserve(series->size());
+        for (auto i = ordser->begin(); i != ordser->end(); ++i)
+        {
+            ns->push_back(series->at((*i).index));
+        }
+        series.swap(ns);
+    }
 }
 }
 
@@ -379,27 +464,36 @@ template<typename T>
 template<typename Ite1, typename Ite2>
 void SARowTable<T>::appendColumn(Ite1 b, Ite2 e)
 {
-    auto s = std::distance(b, e);
+    const int rc = rowCount();
+    auto it = b;
 
-    if (s <= rowCount()) {
-        int i = 0;
-        while (b != e)
-        {
-            row(i)->push_back(*b);
-            ++b;
-            ++i;
+    for (int i = 0; i < rc; ++i)
+    {
+        it = b + i;
+        if (it < e) {
+            row(i)->push_back(*it);
+        }else{
+            row(i)->push_back(T());
         }
     }
+    ++m_columns;
 }
 
 
 template<typename T>
 void SARowTable<T>::appendColumn(std::initializer_list<T> args)
 {
-    for (int i = 0; i < args.size(); ++i)
+    const int rc = rowCount();
+
+    for (int i = 0; i < rc; ++i)
     {
-        row(i)->append(args[i]);
+        if (i < args.size()) {
+            row(i)->push_back(args[i]);
+        }else{
+            row(i)->push_back(T());
+        }
     }
+    ++m_columns;
 }
 
 
@@ -620,6 +714,61 @@ template<typename T>
 QPair<QList<typename SARowTable<T>::TablePtr>, QList<T> > SARowTable<T>::groupBy(const QString& field, Qt::CaseSensitivity cs) const
 {
     return (SA::groupby(*this, field, cs));
+}
+
+
+template<typename T>
+void SARowTable<T>::orderBy(const QString& sn, Qt::CaseSensitivity cs)
+{
+    SA::orderBy(*this, sn, cs);
+}
+
+
+template<typename T>
+QPair<T, int> SARowTable<T>::lowerBound(const T& v, const QString& sortedfield, Qt::CaseSensitivity cs) const
+{
+    const int r = nameToIndex(sortedfield, cs);
+
+    return (lowerBound(v, r));
+}
+
+
+template<typename T>
+QPair<T, int> SARowTable<T>::lowerBound(const T& v, int r) const
+{
+    typename SARowTable<T>::SeriesPtr prow = row(r);
+    SeriesIterator ite = std::lower_bound(prow->begin(), prow->end(), v);
+
+    if (ite == prow->end()) {
+        return (qMakePair<T, int>(prow->back(), prow->size()-1));
+    }
+    size_t dis = std::distance(prow->begin(), ite);
+
+    return (qMakePair<T, int>(*ite, dis));
+}
+
+
+template<typename T>
+QPair<T, int> SARowTable<T>::upperBound(const T& v, const QString& sortedfield, Qt::CaseSensitivity cs) const
+{
+    const int r = nameToIndex(sortedfield, cs);
+
+    return (upperBound(v, r));
+}
+
+
+template<typename T>
+QPair<T, int> SARowTable<T>::upperBound(const T& v, int r) const
+{
+    typename SARowTable<T>::SeriesPtr prow = row(r);
+    SeriesIterator ite = std::upper_bound(prow->begin(), prow->end(), v);
+
+    if (ite == prow->end()) {
+        return (qMakePair<T, int>(prow->back(), prow->size()-1));
+    }
+    size_t dis = std::distance(prow->begin(), ite);
+
+    return (qMakePair<T, int>(*ite, dis));
 }
 
 

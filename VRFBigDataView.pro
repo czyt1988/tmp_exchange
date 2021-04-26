@@ -7,7 +7,7 @@
 QT       += core gui xml
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-include($$PWD/../common.pri)
+include($$PWD/common.pri)
 TARGET = VRFBigDataView
 TEMPLATE = app
 DESTDIR = $${BIN_DIR}
@@ -34,7 +34,8 @@ SOURCES += \
     GHvacDataFileIO.cpp \
     SACsvStream.cpp \
     SASeries.cpp \
-    MainWindow.cpp
+    MainWindow.cpp \
+    GHvacDataInfo.cpp
 
 HEADERS += \
         MainWidget.h \
@@ -47,7 +48,9 @@ HEADERS += \
     GHvacDataFileIO.h \
     SACsvStream.h \
     SASeries.h \
-    MainWindow.h
+    MainWindow.h \
+    SAAlgorithm.h \
+    GHvacDataInfo.h
 
 FORMS += \
         MainWidget.ui \
@@ -55,4 +58,7 @@ FORMS += \
     GModuleValueView.ui \
     MainWindow.ui
 
-include($$PWD/../quazip-0.7.3/use_quazip.pri)
+include($$PWD/3rdparty/quazip-0.7.3/use_quazip.pri)
+
+RESOURCES += \
+    icon.qrc
