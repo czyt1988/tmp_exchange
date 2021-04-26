@@ -1,4 +1,4 @@
-#include "MainWidget.h"
+﻿#include "MainWidget.h"
 #include "ui_MainWidget.h"
 #include <QFile>
 #include <QDomDocument>
@@ -12,7 +12,7 @@ MainWidget::MainWidget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::MainWidget)
     , mCurrentSpeed(Speed1x)
-    , mMode(None)
+    , mMode(NoneMode)
 {
     ui->setupUi(this);
     connect(&mTimer, &QTimer::timeout, this, &MainWidget::onTimeout);
@@ -112,6 +112,9 @@ void MainWidget::on_pushButtonBrower_clicked()
     GHvacDataFileIO *io = new GHvacDataFileIO();
     QThread *readThread = new QThread();
 
+    if (mCurrentTemplate) {
+        io->setCanipField(mCurrentTemplate->getCanipField());
+    }
     io->moveToThread(readThread);
     connect(readThread, &QThread::finished, io, &GHvacDataFileIO::deleteLater);
     connect(readThread, &QThread::finished, io, &QThread::deleteLater);
@@ -122,6 +125,8 @@ void MainWidget::on_pushButtonBrower_clicked()
     readThread->start();
     emit message(QStringLiteral("正打开:%1").arg(filepath));
     emit openFile(filepath);
+
+    setNoneMode();
 }
 
 
@@ -130,7 +135,11 @@ void MainWidget::on_pushButtonBrower_clicked()
  */
 void MainWidget::on_pushButtonRun_clicked()
 {
-    mTimer.start();
+    if ((mMode == StoppedMode) || (mMode == NoneMode)) {
+        setRunMode();
+    }else if (mMode == RuningMode) {
+        setStopMode();
+    }
 }
 
 
@@ -169,6 +178,10 @@ void MainWidget::onFileReaded(GHvacDataInfo info)
     ui->labelEndTime->setText(mHvacInfo.allDateTimeScale.back().toString("yyyy-MM-dd HH:mm:ss"));
     ui->horizontalSlider->setRange(0, mHvacInfo.allDateTimeScale.size());
     ui->horizontalSlider->setSingleStep(1);
+    //更新模板的canip
+    if (mCurrentTemplate) {
+        mCurrentTemplate->getIduModel()->setCanIps(info.iduCanIPs);
+    }
     //设置timmer
 
     ui->pushButtonBrower->setEnabled(true);
@@ -180,6 +193,7 @@ void MainWidget::onIOErrRec(const QString& msg)
 {
     ui->pushButtonBrower->setEnabled(true);
     ui->pushButtonRun->setEnabled(true);
+    emit message(msg);
 }
 
 
@@ -219,14 +233,24 @@ void MainWidget::deleteTemplates()
 void MainWidget::setRunMode()
 {
     ui->pushButtonRun->setIcon(QIcon(":/icon/icon/pause.svg"));
-    mMode = Runing;
+    mMode = RuningMode;
+    mTimer.start();
 }
 
 
 void MainWidget::setStopMode()
 {
     ui->pushButtonRun->setIcon(QIcon(":/icon/icon/start.svg"));
-    mMode = Stopped;
+    mMode = StoppedMode;
+    mTimer.stop();
+}
+
+
+void MainWidget::setNoneMode()
+{
+    ui->pushButtonRun->setIcon(QIcon(":/icon/icon/start.svg"));
+    ui->pushButtonRun->setDisabled(true);
+    mMode = NoneMode;
 }
 
 
@@ -284,12 +308,16 @@ void MainWidget::on_horizontalSlider_valueChanged(int value)
 {
     if ((value >= mHvacInfo.allDateTimeScale.size()) || (value < 0)) {
         qDebug() << "value out range";
+        if (mMode == RuningMode) {
+            setStopMode();
+        }
         return;
     }
     QDateTime dt = mHvacInfo.allDateTimeScale.at(value);
 
     int secsSinceEpoch = dt.toSecsSinceEpoch();
 
+    ui->labelCurrentTime->setText(QStringLiteral("当前时间:%1").arg(dt.toString("yyyy-MM-dd HH:mm:ss")));
     updateValue(secsSinceEpoch);
 }
 
@@ -306,6 +334,10 @@ void MainWidget::valueRender(const QJsonObject& obj)
     }
 
 
+    if (mCurrentTemplate == nullptr) {
+        emit message(QStringLiteral("模板异常"));
+        return;
+    }
     //渲染到system
     const QList<GNodeInfo>& sysnodes = mCurrentTemplate->getSystemInfoList();
 
@@ -347,5 +379,38 @@ void MainWidget::valueRender(const QJsonObject& obj)
         }
         n.mDisplayValue = (*i).toString();
         mModuleWidget->updateValue(n);
+    }
+
+    //渲染内机
+
+    QJsonObject::const_iterator i = obj.find("idu");
+
+    if (i == obj.constEnd()) {
+        qDebug() << QStringLiteral("无法找到idu");
+        return;
+    }
+    QList<GNodeInfo> idunodes = mCurrentTemplate->getIduModel()->getNodeInfo();
+    QJsonObject iduobj = (*i).toObject();
+
+    for (int canip : mHvacInfo.iduCanIPs)
+    {
+        QString kname = QString("idu_%1").arg(canip);
+        i = iduobj.find(kname);
+        if (i == obj.constEnd()) {
+            qDebug() << QStringLiteral("无法找到canip:")<<canip<<QStringLiteral("的内容");
+            continue;
+        }
+        QJsonObject iduwithip = (*i).toObject();
+        for (GNodeInfo& n : idunodes)
+        {
+            i = iduwithip.find(n.mSrc);
+            //所有canip遍历一遍
+            if (i == obj.constEnd()) {
+                qDebug() << QStringLiteral("无法在%1中找到参数key:").arg(kname) << n.mSrc;
+                continue;
+            }
+            n.mDisplayValue = (*i).toString();
+        }
+        mCurrentTemplate->getIduModel()->updateValue(idunodes);
     }
 }

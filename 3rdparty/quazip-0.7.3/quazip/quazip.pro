@@ -15,15 +15,16 @@ ZLIB_NAME = zlibd
 ZLIB_NAME = zlib
 }
 
-contains(DEFINES, WIN64) {
-    ZLIB_LIB_DIR = $${ZLIB_ROOT}/x64/
-} else {
+contains(QT_ARCH, i386) {
     ZLIB_LIB_DIR = $${ZLIB_ROOT}/x86/
+} else {
+    ZLIB_LIB_DIR = $${ZLIB_ROOT}/x64/
 }
 
 #end zlib 设置
-include($$PWD/../../common.pri)
-include($$PWD/../../function.pri)
+include($$PWD/../../../common.pri)
+include($$PWD/../../../function.pri)
+ZLIB_LIB_DIR = $$saFixPath($${ZLIB_LIB_DIR})
 # 输出目录设置
 DESTDIR = $${BIN_LIB_DIR}
 #

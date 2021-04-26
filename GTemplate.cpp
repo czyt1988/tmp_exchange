@@ -1,4 +1,4 @@
-#include "GTemplate.h"
+﻿#include "GTemplate.h"
 #include <QFile>
 #include <QDebug>
 GTemplate::GTemplate(QObject *par) : QObject(par)
@@ -6,6 +6,7 @@ GTemplate::GTemplate(QObject *par) : QObject(par)
     mSystemModel = new QStandardItemModel(this);
     mSystemModel->setHorizontalHeaderLabels({ QStringLiteral("参数"), QStringLiteral("值"), QStringLiteral("单位") });
     mIduModel = new GIDUTableModel(this);
+    clear();
 }
 
 
@@ -41,6 +42,7 @@ bool GTemplate::load(const QString& path)
 void GTemplate::clear()
 {
     mName = "";
+    mCanipfield = "can1 ip";
     mSystemModel->clear();
     mIduModel->clear();
     mValueItemToNode.clear();
@@ -75,14 +77,16 @@ const QList<GNodeInfo>& GTemplate::getModuleInfoList() const
     return (mModuleInfo);
 }
 
-const QList<GNodeInfo> &GTemplate::getSystemInfoList() const
+
+const QList<GNodeInfo>& GTemplate::getSystemInfoList() const
 {
-    return mSystemInfo;
+    return (mSystemInfo);
 }
 
-const QList<GNodeInfo> &GTemplate::getIduInfoList() const
+
+const QList<GNodeInfo>& GTemplate::getIduInfoList() const
 {
-    return mIduInfo;
+    return (mIduInfo);
 }
 
 
@@ -97,14 +101,37 @@ void GTemplate::updateValue(const GNodeInfo& value)
 }
 
 
+const QString& GTemplate::getCanipField() const
+{
+    return (mCanipfield);
+}
+
+
 void GTemplate::parse(QDomDocument& doc)
 {
     QDomElement rootEle = doc.documentElement();
 
     mName = rootEle.attribute("name");
+
     loadSystemInfo(rootEle);
     loadModuleInfo(rootEle);
     loadIduInfo(rootEle);
+}
+
+
+void GTemplate::loadsetting(QDomElement& root)
+{
+    QDomElement settag = root.firstChildElement("setting");
+
+    if (settag.isNull()) {
+        return;
+    }
+    QDomElement t = settag.firstChildElement("canipfield");
+
+    if (!t.isNull()) {
+        mCanipfield = t.text();
+        getIduModel()->setCanIpFieldID(mCanipfield);
+    }
 }
 
 

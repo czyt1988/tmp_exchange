@@ -1,4 +1,4 @@
-#ifndef SATABLE_H
+﻿#ifndef SATABLE_H
 #define SATABLE_H
 //Qt
 #include <QVector>
@@ -104,8 +104,15 @@ public:
     SARowTable();
     SARowTable(int rows, int columns);
     void resize(int r, int c);
+
+    /**
+     * @brief 填充元素
+     * @param v
+     */
+    void fill(const T& v);
     const T& at(int r, int c) const;
     T& at(int r, int c);
+
     T cell(int r, int c) const;
     void appendRow(SeriesPtr row);
     void appendRow(std::initializer_list<T> args, const QString& n);
@@ -121,6 +128,9 @@ public:
 
     //返回一列数据，返回一个SeriesPtr，这个seriesPtr的写操作不会影响table
     SeriesPtr colunm(int c) const;
+
+    SeriesType& operator[](int r);
+    const SeriesType& operator[](int r) const;
 
     /**
      * @brief 以最大列数进行列数修正，保证所有行同列
@@ -204,6 +214,7 @@ public:
     QPair<T, int> lowerBound(const T& v, int r) const;
     QPair<T, int> upperBound(const T& v, const QString& sortedfield, Qt::CaseSensitivity cs = Qt::CaseInsensitive) const;
     QPair<T, int> upperBound(const T& v, int r) const;
+
 
 private:
     SAVector<SeriesPtr> m_d;
@@ -387,9 +398,23 @@ template<typename T>
 void SARowTable<T>::resize(int r, int c)
 {
     m_d.resize(r);
-    for (SeriesType& row : m_d)
+    for (SeriesPtr& row : m_d)
     {
-        row.resize(c);
+        if (row == nullptr) {
+            row = makeSeries();
+        }
+        row->resize(c);
+    }
+    m_columns = c;
+}
+
+
+template<typename T>
+void SARowTable<T>::fill(const T& v)
+{
+    for (SeriesPtr r : m_d)
+    {
+        r->fill(v);
     }
 }
 
@@ -599,6 +624,20 @@ typename SARowTable<T>::SeriesPtr SARowTable<T>::colunm(int c) const
         col->operator [](r) = cell(r, c);
     }
     return (col);
+}
+
+
+template<typename T>
+typename SARowTable<T>::SeriesType& SARowTable<T>::operator[](int r)
+{
+    return (*(row(r)));
+}
+
+
+template<typename T>
+const typename SARowTable<T>::SeriesType& SARowTable<T>::operator[](int r) const
+{
+    return (*(row(r)));
 }
 
 

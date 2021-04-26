@@ -1,4 +1,4 @@
-#ifndef MAINWIDGET_H
+﻿#ifndef MAINWIDGET_H
 #define MAINWIDGET_H
 #include <QtWidgets/QWidget>
 #include "GTemplate.h"
@@ -27,10 +27,11 @@ public:
         , Speed3x	= 3
     };
     enum Mode {
-        None
-        , Stopped
-        , Runing
+        NoneMode
+        , StoppedMode
+        , RuningMode
     };
+
 protected:
     void changeEvent(QEvent *e);
 
@@ -59,6 +60,7 @@ private:
     void deleteTemplates();
     void setRunMode();
     void setStopMode();
+    void setNoneMode();
     void setSpeed(Speed s);
 
 signals:

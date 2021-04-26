@@ -1,4 +1,4 @@
-#include "GHvacDataFileIO.h"
+﻿#include "GHvacDataFileIO.h"
 #include <QDebug>
 #include <QDir>
 #include "quazipfile.h"
@@ -7,8 +7,11 @@
 #include "SATable.h"
 #include <QDateTime>
 #include <QElapsedTimer>
+#include <numeric>
+#include <cmath>
 GHvacDataFileIO::GHvacDataFileIO(QObject *p) : QObject(p)
     , mIsOpen(false)
+    , mCanipfield("can1 ip")
 {
     qRegisterMetaType<GHvacDataInfo>();
     setDatetimeField(QStringLiteral("记录时间"));
@@ -86,17 +89,6 @@ void GHvacDataFileIO::open(const QString& filepath)
             if (dt2 >= 0) {
                 rd[dt2] = QDateTime::fromString(line[dt2], dfmt).toSecsSinceEpoch();
             }
-//            if (f == "system.csv") {
-//                static int sss = 0;
-//                ++sss;
-//                if (sss % 10 == 0) {
-//                    qDebug()	<<"dt1:" << dt1 <<"dt2" << dt2 << "   "<< line << "\n   " << rd
-//                            << "\n line[dt1]:" << line[dt1]
-//                            << QDateTime::fromString(line[dt1], "yyyy/M/d H:m:s").toString(Qt::ISODate)
-//                            << " toSecsSinceEpoch" << QDateTime::fromString(line[dt1], "yyyy/M/d H:m:s").toSecsSinceEpoch()
-//                    ;
-//                }
-//            }
             table->appendColumn(rd.begin(), rd.end());
         }
 
@@ -143,6 +135,12 @@ void GHvacDataFileIO::setDatetimeField(const QString& f)
 }
 
 
+void GHvacDataFileIO::setCanipField(const QString& canipfield)
+{
+    mCanipfield = canipfield;
+}
+
+
 void GHvacDataFileIO::converStringListToDoubleList(const QStringList& str, QVector<double>& d)
 {
     if (d.size() != str.size()) {
@@ -156,7 +154,7 @@ void GHvacDataFileIO::converStringListToDoubleList(const QStringList& str, QVect
     {
         data = str[i].toDouble(&isOK);
         if (!isOK) {
-            data = std::nan("");
+            data = NAN;
         }
         d[i] = data;
     }
@@ -165,7 +163,7 @@ void GHvacDataFileIO::converStringListToDoubleList(const QStringList& str, QVect
 
 void GHvacDataFileIO::groupByCanIP(QList<TablePtr> tables)
 {
-    QString canipfield = "can1 ip";
+    QString canipfield = mCanipfield;
 
     for (TablePtr t : tables)
     {

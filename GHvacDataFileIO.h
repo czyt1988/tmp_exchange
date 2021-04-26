@@ -1,4 +1,4 @@
-#ifndef GHVACDATAFILEIO_H
+﻿#ifndef GHVACDATAFILEIO_H
 #define GHVACDATAFILEIO_H
 
 #include <QtCore/qglobal.h>
@@ -25,6 +25,7 @@ public:
     void setFileName(const QString& filepath);
     Error getError() const;
     void setDatetimeField(const QString& f);
+    void setCanipField(const QString& canipfield);
 
 public slots:
     void open(const QString& filepath);
@@ -65,6 +66,7 @@ private:
     std::shared_ptr<QuaZip> mZip;
     bool mIsOpen;
     GHvacDataInfo mHvacInfo;
+    QString mCanipfield;
 };
 Q_DECLARE_METATYPE(QList<GHvacDataFileIO::TablePtr>)
 Q_DECLARE_METATYPE(QList<int>)

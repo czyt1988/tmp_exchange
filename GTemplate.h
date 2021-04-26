@@ -1,4 +1,4 @@
-#ifndef GTEMPLATE_H
+﻿#ifndef GTEMPLATE_H
 #define GTEMPLATE_H
 
 #include <QtCore/qglobal.h>
@@ -36,11 +36,15 @@ public:
     const QList<GNodeInfo>& getModuleInfoList() const;
     const QList<GNodeInfo>& getSystemInfoList() const;
     const QList<GNodeInfo>& getIduInfoList() const;
+
     //更新数据
     void updateValue(const GNodeInfo& value);
 
+    const QString& getCanipField() const;
+
 private:
     void parse(QDomDocument& doc);
+    void loadsetting(QDomElement& root);
     void loadSystemInfo(QDomElement& root);
     bool loadSystemItemFromNode(QDomElement& nodeitem, QStandardItem *parItem);
     void loadIduInfo(QDomElement& root);
@@ -58,6 +62,8 @@ private:
     GIDUTableModel *mIduModel;
     QHash<QStandardItem *, GNodeInfo> mValueItemToNode;
     QHash<GNodeInfo, QStandardItem *> mNodeToItemValue;
+
+    QString mCanipfield;
 };
 
 #endif // GTEMPLATE_H
