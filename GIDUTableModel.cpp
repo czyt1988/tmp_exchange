@@ -81,6 +81,8 @@ void GIDUTableModel::updateValue(const QList<GNodeInfo>& value)
         return;
     }
     if (mTable.rowCount() <= 0) {
+        qDebug() << QStringLiteral("table 为空");
+        return;
     }
     QString canip = value.first().mDisplayValue;
     int r = mTable.nameToIndex(canip);

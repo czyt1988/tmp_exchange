@@ -45,6 +45,11 @@ void MainWidget::setTemplate(GTemplate *t)
     ui->tableViewIdu->setModel(t->getIduModel());
     mModuleWidget->setNodeInfos(t->getModuleInfoList());
     setWindowTitle(QStringLiteral("数据回放 - 模板：%1").arg(t->name()));
+    if (mCurrentTemplate) {
+        if (!mHvacInfo.iduCanIPs.isEmpty()) {
+            mCurrentTemplate->getIduModel()->setCanIps(mHvacInfo.iduCanIPs);
+        }
+    }
     qDebug() << QStringLiteral("设置模板成功");
 }
 
@@ -107,14 +112,12 @@ void MainWidget::on_pushButtonBrower_clicked()
         }
         return;
     }
+    ui->lineEdit->setText(filepath);
     ui->pushButtonBrower->setDisabled(true);
     ui->pushButtonRun->setDisabled(true);
     GHvacDataFileIO *io = new GHvacDataFileIO();
     QThread *readThread = new QThread();
 
-    if (mCurrentTemplate) {
-        io->setCanipField(mCurrentTemplate->getCanipField());
-    }
     io->moveToThread(readThread);
     connect(readThread, &QThread::finished, io, &GHvacDataFileIO::deleteLater);
     connect(readThread, &QThread::finished, io, &QThread::deleteLater);
@@ -122,6 +125,14 @@ void MainWidget::on_pushButtonBrower_clicked()
     connect(this, &MainWidget::openFile, io, &GHvacDataFileIO::open);
     connect(io, &GHvacDataFileIO::readed, this, &MainWidget::onFileReaded);
     connect(io, &GHvacDataFileIO::message, this, &MainWidget::message);
+    connect(io, &GHvacDataFileIO::error, this, &MainWidget::onIoError);
+    //唤起线程自杀
+    connect(io, &GHvacDataFileIO::readed, this, [readThread](GHvacDataInfo) {
+        readThread->quit();
+    });
+    connect(io, &GHvacDataFileIO::error, this, [readThread](QString) {
+        readThread->quit();
+    });
     readThread->start();
     emit message(QStringLiteral("正打开:%1").arg(filepath));
     emit openFile(filepath);
@@ -326,12 +337,13 @@ void MainWidget::valueRender(const QJsonObject& obj)
 {
     QJsonDocument doc(obj);
     QString str = QString(doc.toJson(QJsonDocument::Indented));
-    QFile f("./VRFBigDataView.json");
 
-    if (f.open(QIODevice::ReadWrite|QIODevice::Append)) {
-        QTextStream s(&f);
-        s << str;
-    }
+//    QFile f("./VRFBigDataView.json");
+
+//    if (f.open(QIODevice::ReadWrite|QIODevice::Append)) {
+//        QTextStream s(&f);
+//        s << str;
+//    }
 
 
     if (mCurrentTemplate == nullptr) {
@@ -349,7 +361,7 @@ void MainWidget::valueRender(const QJsonObject& obj)
         }
         QJsonObject sys = (*i).toObject();
         i = sys.find(n.mSrc);
-        if (i == obj.constEnd()) {
+        if (i == sys.constEnd()) {
             qDebug() << QStringLiteral("无法在system中找到参数key:") << n.mSrc;
             continue;
         }
@@ -367,13 +379,13 @@ void MainWidget::valueRender(const QJsonObject& obj)
         }
         QJsonObject module = (*i).toObject();
         i = module.find(QString("module_")+ui->comboBoxCanIP->currentText());
-        if (i == obj.constEnd()) {
+        if (i == module.constEnd()) {
             qDebug() << QStringLiteral("无法找到canip:")<<ui->comboBoxCanIP->currentText()<<QStringLiteral("的内容");
             continue;
         }
         QJsonObject modulewithip = (*i).toObject();
         i = modulewithip.find(n.mSrc);
-        if (i == obj.constEnd()) {
+        if (i == modulewithip.constEnd()) {
             qDebug() << QStringLiteral("无法在module中找到参数key:") << n.mSrc;
             continue;
         }
@@ -396,7 +408,7 @@ void MainWidget::valueRender(const QJsonObject& obj)
     {
         QString kname = QString("idu_%1").arg(canip);
         i = iduobj.find(kname);
-        if (i == obj.constEnd()) {
+        if (i == iduobj.constEnd()) {
             qDebug() << QStringLiteral("无法找到canip:")<<canip<<QStringLiteral("的内容");
             continue;
         }
@@ -405,7 +417,7 @@ void MainWidget::valueRender(const QJsonObject& obj)
         {
             i = iduwithip.find(n.mSrc);
             //所有canip遍历一遍
-            if (i == obj.constEnd()) {
+            if (i == iduwithip.constEnd()) {
                 qDebug() << QStringLiteral("无法在%1中找到参数key:").arg(kname) << n.mSrc;
                 continue;
             }
@@ -413,4 +425,12 @@ void MainWidget::valueRender(const QJsonObject& obj)
         }
         mCurrentTemplate->getIduModel()->updateValue(idunodes);
     }
+}
+
+
+void MainWidget::onIoError(const QString& msg)
+{
+    ui->pushButtonBrower->setEnabled(true);
+    ui->pushButtonRun->setEnabled(true);
+    emit message(msg);
 }

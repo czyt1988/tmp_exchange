@@ -8,13 +8,24 @@
 #include <QDateTime>
 #include <QElapsedTimer>
 #include <numeric>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <cmath>
 GHvacDataFileIO::GHvacDataFileIO(QObject *p) : QObject(p)
     , mIsOpen(false)
-    , mCanipfield("can1 ip")
 {
     qRegisterMetaType<GHvacDataInfo>();
-    setDatetimeField(QStringLiteral("记录时间"));
+    mSetting.codec = QStringLiteral("UTF-8");
+    mSetting.canipfield = QStringLiteral("can1 ip");
+    mSetting.datetimefield = QStringLiteral("记录时间");
+    mSetting.datetimeformat = "yyyy/M/d H:m:s";
+    mSetting.table_system = QStringLiteral("system.csv");
+    mSetting.table_module = QStringLiteral("module.csv");
+    mSetting.table_idu = QStringLiteral("idu.csv");
+    mSetting.tablename_system = toTableName(mSetting.table_system);
+    mSetting.tablename_module = toTableName(mSetting.table_module);
+    mSetting.tablename_idu = toTableName(mSetting.table_idu);
+    setDatetimeField(mSetting.datetimefield);
 }
 
 
@@ -43,64 +54,167 @@ void GHvacDataFileIO::open(const QString& filepath)
         emit error(QStringLiteral("无法打开文件%1").arg(mFileName));
     }
     mHvacInfo.filesList = mZip->getFileNameList();
+    if (!loadSetting()) {
+        return;
+    }
+
     QList<TablePtr> originTables;
 
     for (const QString& f : mHvacInfo.filesList)
     {
+        if (!f.contains("csv")) {
+            continue;
+        }
         QElapsedTimer tic;
         tic.start();
         emit message(QStringLiteral("开始读取%1").arg(f));
-        QStringList flist = f.split('.');
-        if (flist.size() > 1) {
-            //把csv去掉
-            flist.pop_back();
-        }
         TablePtr table = std::make_shared<TableType>();
-        table->setName(flist.join(' '));
+        table->setName(toTableName(f));
         mZip->setCurrentFile(f);
         QuaZipFile archived(mZip.get());
         if (!archived.open(QIODevice::ReadOnly, nullptr)) {
             continue;
         }
         QTextStream s(&archived);
-        s.setCodec("UTF-8");
+        s.setCodec(mSetting.codec.toLocal8Bit().data());
         SACsvStream csv(&s);
         QStringList header = csv.readCsvLine();
-        int dt1 = header.indexOf(QStringLiteral("记录时间"));
+        int dt1 = header.indexOf(mSetting.datetimefield);
         int dt2 = header.indexOf(QStringLiteral("接收时间"));
-        //确定时间格式
-        bool havesuretimeformat = false;
-        QString dfmt = "yyyy/M/d H:m:s";
         table->setRowNames(header);
+        qDebug() << QStringLiteral("数据文件:") << f << QStringLiteral(" 数据头:") << header;
         QVector<double> rd;
         while (!csv.atEnd())
         {
             QStringList line = csv.readCsvLine();
             converStringListToDoubleList(line, rd);
             if (dt1 >= 0) {
-                if (!havesuretimeformat) {
-                    havesuretimeformat = true;
-                    if (line[dt1].count(':') == 1) {
-                        dfmt = "yyyy/M/d H:m";
-                    }
-                }
-                rd[dt1] = QDateTime::fromString(line[dt1], dfmt).toSecsSinceEpoch();
+                rd[dt1] = formatDatetime(line[dt1]).toSecsSinceEpoch();
             }
             if (dt2 >= 0) {
-                rd[dt2] = QDateTime::fromString(line[dt2], dfmt).toSecsSinceEpoch();
+                rd[dt2] = formatDatetime(line[dt2]).toSecsSinceEpoch();
             }
             table->appendColumn(rd.begin(), rd.end());
         }
 
         originTables.append(table);
-        emit message(QStringLiteral("读取%1完成，耗时%2").arg(table->getName()).arg(tic.elapsed()));
+        emit message(QStringLiteral("读取%1完成，数据大小(%2,%3)耗时%4").arg(table->getName()).arg(table->rowCount()).arg(table->columnCount()).arg(tic.elapsed()));
     }
     //开始对can ip进行聚合
     groupByCanIP(originTables);
     unionDateTime();
     orderByDatetime();
-    qDebug() << filepath << QStringLiteral("，完成解析");
+    qDebug() << filepath << QStringLiteral("完成解析");
     emit readed(mHvacInfo);
+}
+
+
+QString GHvacDataFileIO::toTableName(const QString& csvname)
+{
+    QStringList flist = csvname.split('.');
+
+    if (flist.size() > 1) {
+        //把csv去掉
+        flist.pop_back();
+    }
+    return (flist.join(' '));
+}
+
+
+QDateTime GHvacDataFileIO::formatDatetime(const QString& str)
+{
+    QDateTime dt = QDateTime::fromString(str, mSetting.datetimeformat);
+
+    if (dt.isValid()) {
+        return (dt);
+    }
+    QString dfmt = "yyyy/M/d H:m";
+
+    dt = QDateTime::fromString(str, dfmt);
+    if (dt.isValid()) {
+        return (dt);
+    }
+
+    dfmt = "yyyy-MM-dd HH:mm:ss";
+    dt = QDateTime::fromString(str, dfmt);
+    if (dt.isValid()) {
+        return (dt);
+    }
+    dfmt = "yyyy-MM-dd HH:mm";
+    dt = QDateTime::fromString(str, dfmt);
+    if (dt.isValid()) {
+        return (dt);
+    }
+    dfmt = "yyyy-M-d H:m:s";
+    dt = QDateTime::fromString(str, dfmt);
+    if (dt.isValid()) {
+        return (dt);
+    }
+    dfmt = "yyyy-M-d H:m";
+    dt = QDateTime::fromString(str, dfmt);
+
+    return (dt);
+}
+
+
+bool GHvacDataFileIO::loadSetting()
+{
+    int setindex = mZip->getFileNameList().indexOf("hvac-setting.json");
+
+    if (setindex < 0) {
+        return (true);
+    }
+    mZip->setCurrentFile(mHvacInfo.filesList[setindex]);
+    QuaZipFile archived(mZip.get());
+
+    if (!archived.open(QIODevice::ReadOnly, nullptr)) {
+        emit message(QStringLiteral("无法打开hvac-setting.json，以默认模式打开"));
+        return (true);
+    }
+    QTextStream s(&archived);
+    QJsonParseError err;
+    QJsonDocument json = QJsonDocument::fromJson(archived.readAll(), &err);
+
+    if (json.isNull()) {
+        emit message(QStringLiteral("文件异常:")+err.errorString());
+        emit error(err.errorString());
+        return (false);
+    }
+    QJsonObject obj = json.object();
+
+    if (obj.empty()) {
+        emit message(QStringLiteral("文件异常:配置信息读取错误"));
+        emit error(QStringLiteral("文件异常:配置信息读取错误"));
+        return (false);
+    }
+    mSetting.codec = obj["codec"].toString();
+    mSetting.canipfield = obj["canipfield"].toString();
+    mSetting.datetimefield = obj["datetimefield"].toString();
+    mSetting.datetimeformat = obj["datetimeformat"].toString();
+    QJsonObject tobj = obj["tables"].toObject();
+
+    if (obj.empty()) {
+        emit message(QStringLiteral("文件异常:配置信息读取错误[2]"));
+        emit error(QStringLiteral("文件异常:配置信息读取错误[2]"));
+        return (false);
+    }
+    mSetting.table_system = tobj["system"].toString();
+    mSetting.table_module = tobj["module"].toString();
+    mSetting.table_idu = tobj["idu"].toString();
+    //转换tablename
+    mSetting.tablename_system = toTableName(mSetting.table_system);
+    mSetting.tablename_module = toTableName(mSetting.table_module);
+    mSetting.tablename_idu = toTableName(mSetting.table_idu);
+    qDebug()	<< "mSetting.codec:"<<mSetting.codec
+            << "\n mSetting.canipfield:"<<mSetting.canipfield
+            << "\n mSetting.canipfield:"<<mSetting.canipfield
+            << "\n mSetting.datetimefield:"<<mSetting.datetimefield
+            << "\n mSetting.datetimeformat:"<<mSetting.datetimeformat
+            << "\n mSetting.table_system:"<<mSetting.table_system
+            << "\n mSetting.table_module:"<<mSetting.table_module
+            << "\n mSetting.table_idu:"<<mSetting.table_idu
+    ;
+    return (true);
 }
 
 
@@ -135,12 +249,6 @@ void GHvacDataFileIO::setDatetimeField(const QString& f)
 }
 
 
-void GHvacDataFileIO::setCanipField(const QString& canipfield)
-{
-    mCanipfield = canipfield;
-}
-
-
 void GHvacDataFileIO::converStringListToDoubleList(const QStringList& str, QVector<double>& d)
 {
     if (d.size() != str.size()) {
@@ -163,13 +271,13 @@ void GHvacDataFileIO::converStringListToDoubleList(const QStringList& str, QVect
 
 void GHvacDataFileIO::groupByCanIP(QList<TablePtr> tables)
 {
-    QString canipfield = mCanipfield;
+    QString canipfield = mSetting.canipfield;
 
     for (TablePtr t : tables)
     {
-        if (t->getName() == "system") {
+        if (t->getName() == mSetting.tablename_system) {
             mHvacInfo.tables.append(t);
-        }else if (t->getName() == "module") {
+        }else if (t->getName() == mSetting.tablename_module) {
             QElapsedTimer tic;
             tic.start();
             QPair<QList<typename TableType::TablePtr>, QList<typename TableType::Type> > res = t->groupBy(canipfield);
@@ -182,19 +290,22 @@ void GHvacDataFileIO::groupByCanIP(QList<TablePtr> tables)
                 mHvacInfo.tables.append(res.first[i]);
             }
             emit message(info+QStringLiteral(" 耗时:%1").arg(tic.elapsed()));
-        }else if (t->getName() == "idu") {
+        }else if (t->getName() == mSetting.tablename_idu) {
             QElapsedTimer tic;
             tic.start();
-            QPair<QList<typename TableType::TablePtr>, QList<typename TableType::Type> > res = t->groupBy(canipfield);
+            QPair<QList<typename TableType::TablePtr>, QList<typename TableType::Type> > res
+                = t->groupBy(canipfield);
             QString info(QStringLiteral("idu 表包含can ip:"));
+            QString info2(QStringLiteral(" 各数据量为:"));
             for (int i = 0; i < res.first.size(); ++i)
             {
                 mHvacInfo.iduCanIPs.append(res.second[i]);
                 info += (QString::number(res.second[i]) + ",");
+                info2 += QString::number(res.first[i]->columnCount())+ ",";
                 res.first[i]->setName(QString("idu_%1").arg(int(res.second[i])));
                 mHvacInfo.tables.append(res.first[i]);
             }
-            emit message(info+QStringLiteral(" 耗时:%1").arg(tic.elapsed()));
+            emit message(info+info2+QStringLiteral(" 耗时:%1").arg(tic.elapsed()));
         }
     }
 }
@@ -210,7 +321,7 @@ void GHvacDataFileIO::unionDateTime()
     QElapsedTimer tic;
 
     tic.start();
-    QString datetimefield = QStringLiteral("记录时间");
+    QString datetimefield = mSetting.datetimefield;
     QList<TableType::Type> unionDatetime;
 
     if (true) {
@@ -245,13 +356,21 @@ void GHvacDataFileIO::unionDateTime()
 
 void GHvacDataFileIO::orderByDatetime()
 {
-    QString datetimefield = QStringLiteral("记录时间");
+    qDebug() << "orderByDatetime";
+    QString datetimefield = mSetting.datetimefield;
     QElapsedTimer tic;
 
     tic.start();
     for (TablePtr t : mHvacInfo.tables)
     {
-        t->orderBy(datetimefield);
+        qDebug() << "orderBy:" << datetimefield << t->getName() << t->rowCount();
+        int index = t->nameToIndex(datetimefield);
+        if (index < 0) {
+            message(QStringLiteral("%1表未找到时间字段%1").arg(t->getName()).arg(datetimefield));
+            qDebug() << t->getName() << t->rowNames();
+            continue;
+        }
+        t->orderBy(index);
     }
     message(QStringLiteral("完成所有表时间排序，耗时%1").arg(tic.elapsed()));
     for (TablePtr t : mHvacInfo.tables)

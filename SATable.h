@@ -203,6 +203,7 @@ public:
      * @param sn
      */
     void orderBy(const QString& sn, Qt::CaseSensitivity cs = Qt::CaseInsensitive);
+    void orderBy(int rindex);
 
     /**
      * @brief 查找第一个大于或等于某个元素的位置
@@ -349,6 +350,31 @@ void orderBy(SARowTable<T>& table, const QString& field, Qt::CaseSensitivity cs 
     typename SARowTable<T>::SeriesPtr row = table.row(r);
     Q_ASSERT_X(row != nullptr, "orderBy", "unknow field");
 
+    auto ordser = makeIndexSeries<T>(row);
+
+    std::sort(ordser->begin(), ordser->end());
+    int rowcount = table.rowCount();
+
+    //开始逐一转换
+    for (int rc = 0; rc < rowcount; ++rc)
+    {
+        typename SARowTable<T>::SeriesPtr series = table.row(rc);
+        typename SARowTable<T>::SeriesPtr ns = SARowTable<T>::makeSeries(series->getName());
+        ns->reserve(series->size());
+        for (auto i = ordser->begin(); i != ordser->end(); ++i)
+        {
+            ns->push_back(series->at((*i).index));
+        }
+        series.swap(ns);
+    }
+}
+
+
+template<typename T>
+void orderBy(SARowTable<T>& table, int r)
+{
+    typename SARowTable<T>::SeriesPtr row = table.row(r);
+    Q_ASSERT_X(row != nullptr, "orderBy", "unknow field");
     auto ordser = makeIndexSeries<T>(row);
 
     std::sort(ordser->begin(), ordser->end());
@@ -760,6 +786,13 @@ template<typename T>
 void SARowTable<T>::orderBy(const QString& sn, Qt::CaseSensitivity cs)
 {
     SA::orderBy(*this, sn, cs);
+}
+
+
+template<typename T>
+void SARowTable<T>::orderBy(int rindex)
+{
+    SA::orderBy(*this, rindex);
 }
 
 

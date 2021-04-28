@@ -45,19 +45,15 @@ void GModuleValueView::setNodeInfos(const QList<GNodeInfo>& infos)
 
 void GModuleValueView::clear()
 {
+    delete mLayout;
+    for (GItemDisplayWidget *w : mNodeToWidget.values())
+    {
+        w->hide();
+        w->deleteLater();
+    }
+    mLayout = new QGridLayout(this);
     mNodeinfos.clear();
     mNodeToWidget.clear();
-    int c = mLayout->count();
-
-    for (int i = 0; i < c; ++i)
-    {
-        QLayoutItem *item = mLayout->takeAt(i);
-        QWidget *w = item->widget();
-        if (w) {
-            w->deleteLater();
-        }
-        delete item;
-    }
 }
 
 

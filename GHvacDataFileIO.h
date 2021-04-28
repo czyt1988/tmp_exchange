@@ -8,6 +8,9 @@
 #include <QDir>
 #include "SATable.h"
 #include "GHvacDataInfo.h"
+
+
+
 class GHvacDataFileIO : public QObject
 {
     Q_OBJECT
@@ -24,8 +27,7 @@ public:
     ~GHvacDataFileIO();
     void setFileName(const QString& filepath);
     Error getError() const;
-    void setDatetimeField(const QString& f);
-    void setCanipField(const QString& canipfield);
+
 
 public slots:
     void open(const QString& filepath);
@@ -50,7 +52,12 @@ signals:
     void message(const QString& msg);
 
 private:
+    QString toTableName(const QString& csvname);
+    QDateTime formatDatetime(const QString& str);
+    void setDatetimeField(const QString& f);
     void converStringListToDoubleList(const QStringList& str, QVector<double>& d);
+
+    bool loadSetting();
 
     //根据can ip进行groupby
     void groupByCanIP(QList<TablePtr> tables);
@@ -62,11 +69,23 @@ private:
     void orderByDatetime();
 
 private:
+    struct Setting {
+        QString codec;
+        QString canipfield;
+        QString datetimefield;
+        QString datetimeformat;
+        QString table_system;
+        QString table_module;
+        QString table_idu;
+        QString tablename_system;
+        QString tablename_module;
+        QString tablename_idu;
+    };
+    Setting mSetting;
     QString mFileName;
     std::shared_ptr<QuaZip> mZip;
     bool mIsOpen;
     GHvacDataInfo mHvacInfo;
-    QString mCanipfield;
 };
 Q_DECLARE_METATYPE(QList<GHvacDataFileIO::TablePtr>)
 Q_DECLARE_METATYPE(QList<int>)

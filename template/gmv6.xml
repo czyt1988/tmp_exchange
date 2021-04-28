@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<root name="Start2代">
+<root name="顶出风多联机">
     <setting>
         <canipfield>can1 ip</canipfield>
     </setting>
@@ -43,25 +43,6 @@
             <node name="制热防高温" ds="制热防高温" suffix="" />
             <node name="压缩机2壳顶高温保护" ds="压缩机2壳顶高温保护" suffix="" />
             <node name="阀门异常" ds="阀门异常" suffix="" />
-            <node name="模块1故障" ds="模块1故障" suffix="" />
-            <node name="模块2故障" ds="模块2故障" suffix="" />
-            <node name="模块3故障" ds="模块3故障" suffix="" />
-            <node name="模块4故障" ds="模块4故障" suffix="" />
-            <node name="系统时钟异常" ds="系统时钟异常" suffix="" />
-            <node name="紧急停机" ds="紧急停机" suffix="" />
-            <node name="系统地址拨码冲突" ds="系统地址拨码冲突" suffix="" />
-            <node name="远程急停" ds="远程急停" suffix="" />
-            <node name="系统高压过低保护" ds="系统高压过低保护" suffix="" />
-            <node name="冷媒灌注无效" ds="冷媒灌注无效" suffix="" />
-            <node name="内机缺失故障" ds="内机缺失故障" suffix="" />
-            <node name="外机数量不一致" ds="外机数量不一致" suffix="" />
-            <node name="系统不可恢复故障" ds="系统不可恢复故障" suffix="" />
-            <node name="系统可恢复故障" ds="系统可恢复故障" suffix="" />
-            <node name="ip地址分配溢出" ds="ip地址分配溢出" suffix="" />
-            <node name="多主控机故障" ds="多主控机故障" suffix="" />
-            <node name="启动前低压保护" ds="启动前低压保护" suffix="" />
-            <node name="系统压力比过低保护" ds="系统压力比过低保护" suffix="" />
-            <node name="系统压力比过高保护" ds="系统压力比过高保护" suffix="" />
             <node name="远程节能" ds="远程节能" suffix="" />
             <node name="总协议版本" ds="总协议版本" suffix="" />
             <node name="设备协议版本" ds="设备协议版本" suffix="" />
@@ -172,6 +153,27 @@
             <node name="dred模式" ds="dred模式" suffix="" />
             <node name="外风机静压模式" ds="外风机静压模式" suffix="" />
         </group>
+        <group name="故障">
+            <node name="模块1故障" ds="模块1故障" suffix="" />
+            <node name="模块2故障" ds="模块2故障" suffix="" />
+            <node name="模块3故障" ds="模块3故障" suffix="" />
+            <node name="模块4故障" ds="模块4故障" suffix="" />
+            <node name="系统时钟异常" ds="系统时钟异常" suffix="" />
+            <node name="紧急停机" ds="紧急停机" suffix="" />
+            <node name="系统地址拨码冲突" ds="系统地址拨码冲突" suffix="" />
+            <node name="远程急停" ds="远程急停" suffix="" />
+            <node name="系统高压过低保护" ds="系统高压过低保护" suffix="" />
+            <node name="冷媒灌注无效" ds="冷媒灌注无效" suffix="" />
+            <node name="内机缺失故障" ds="内机缺失故障" suffix="" />
+            <node name="外机数量不一致" ds="外机数量不一致" suffix="" />
+            <node name="系统不可恢复故障" ds="系统不可恢复故障" suffix="" />
+            <node name="系统可恢复故障" ds="系统可恢复故障" suffix="" />
+            <node name="ip地址分配溢出" ds="ip地址分配溢出" suffix="" />
+            <node name="多主控机故障" ds="多主控机故障" suffix="" />
+            <node name="启动前低压保护" ds="启动前低压保护" suffix="" />
+            <node name="系统压力比过低保护" ds="系统压力比过低保护" suffix="" />
+            <node name="系统压力比过高保护" ds="系统压力比过高保护" suffix="" />
+        </group>
     </system>
     <module>
         <node name="额定容量" ds="额定容量" suffix="" />
@@ -231,28 +233,6 @@
         <node name="风机1工作状态" ds="风机1工作状态" suffix="" />
         <node name="风机2工作状态" ds="风机2工作状态" suffix="" />
         <node name="模块停机故障" ds="模块停机故障" suffix="" />
-        <node name="模块不停机故障" ds="模块不停机故障" suffix="" />
-        <node name="通讯故障" ds="通讯故障" suffix="" />
-        <node name="外机容量码或跳线帽设定错误" ds="外机容量码或跳线帽设定错误" suffix="" />
-        <node name="高压保护" ds="高压保护" suffix="" />
-        <node name="低压保护" ds="低压保护" suffix="" />
-        <node name="缺冷媒保护" ds="缺冷媒保护" suffix="" />
-        <node name="排气低温保护" ds="排气低温保护" suffix="" />
-        <node name="外机主板不良" ds="外机主板不良" suffix="" />
-        <node name="四通阀串气保护" ds="四通阀串气保护" suffix="" />
-        <node name="紧急运转设定错误" ds="紧急运转设定错误" suffix="" />
-        <node name="外机管路异常" ds="外机管路异常" suffix="" />
-        <node name="高压过低保护" ds="高压过低保护" suffix="" />
-        <node name="压缩机1排气感温包故障" ds="压缩机1排气感温包故障" suffix="" />
-        <node name="压缩机2排气感温包故障" ds="压缩机2排气感温包故障" suffix="" />
-        <node name="压缩机1排气感温包脱落" ds="压缩机1排气感温包脱落" suffix="" />
-        <node name="压缩机2排气感温包脱落" ds="压缩机2排气感温包脱落" suffix="" />
-        <node name="室外环境感温包故障" ds="室外环境感温包故障" suffix="" />
-        <node name="汽分进管感温包故障" ds="汽分进管感温包故障" suffix="" />
-        <node name="化霜感温包1故障" ds="化霜感温包1故障" suffix="" />
-        <node name="汽分出管感温包故障" ds="汽分出管感温包故障" suffix="" />
-        <node name="过冷器气出感温包故障" ds="过冷器气出感温包故障" suffix="" />
-        <node name="过冷器液出感温包故障" ds="过冷器液出感温包故障" suffix="" />
         <node name="压缩机1壳顶感温包故障" ds="压缩机1壳顶感温包故障" suffix="" />
         <node name="压缩机1壳顶感温包脱落" ds="压缩机1壳顶感温包脱落" suffix="" />
         <node name="高压传感器故障" ds="高压传感器故障" suffix="" />
@@ -655,45 +635,6 @@
         <node name="进水间隔" ds="进水间隔" suffix="" />
         <node name="接水盘限定温度" ds="接水盘限定温度" suffix="" />
         <node name="灯罩限定温度" ds="灯罩限定温度" suffix="" />
-        <node name="加湿比例设定" ds="加湿比例设定" suffix="" />
-        <node name="排水时间" ds="排水时间" suffix="" />
-        <node name="排水累积次数" ds="排水累积次数" suffix="" />
-        <node name="群控总数" ds="群控总数" suffix="" />
-        <node name="轮值数量" ds="轮值数量" suffix="" />
-        <node name="轮值时间" ds="轮值时间" suffix="" />
-        <node name="加湿器目标电流" ds="加湿器目标电流" suffix="" />
-        <node name="加湿器运行电流" ds="加湿器运行电流" suffix="" />
-        <node name="相对湿度设定" ds="相对湿度设定" suffix="" />
-        <node name="加湿器状态" ds="加湿器状态" suffix="" />
-        <node name="进水时间" ds="进水时间" suffix="" />
-        <node name="排水间隔时间" ds="排水间隔时间" suffix="" />
-        <node name="转换器过冷电子膨胀阀" ds="转换器过冷电子膨胀阀" suffix="" />
-        <node name="制热平衡电子膨胀阀" ds="制热平衡电子膨胀阀" suffix="" />
-        <node name="入管2温度传感器2故障" ds="入管2温度传感器2故障" suffix="" />
-        <node name="出管2温度传感器2故障" ds="出管2温度传感器2故障" suffix="" />
-        <node name="水温异常" ds="水温异常" suffix="" />
-        <node name="中管2温度传感器2故障" ds="中管2温度传感器2故障" suffix="" />
-        <node name="内风机2保护" ds="内风机2保护" suffix="" />
-        <node name="屏蔽开关" ds="屏蔽开关" suffix="" />
-        <node name="水箱回水泵状态" ds="水箱回水泵状态" suffix="" />
-        <node name="副换热器防冻结" ds="副换热器防冻结" suffix="" />
-        <node name="排水故障" ds="排水故障" suffix="" />
-        <node name="红外加湿器保护" ds="红外加湿器保护" suffix="" />
-        <node name="电加热保护" ds="电加热保护" suffix="" />
-        <node name="低风压保护" ds="低风压保护" suffix="" />
-        <node name="室内机外接停机故障" ds="室内机外接停机故障" suffix="" />
-        <node name="加湿器高水位" ds="加湿器高水位" suffix="" />
-        <node name="浸水保护" ds="浸水保护" suffix="" />
-        <node name="加湿器低电流" ds="加湿器低电流" suffix="" />
-        <node name="低压旁通电磁阀" ds="低压旁通电磁阀" suffix="" />
-        <node name="制热电磁阀" ds="制热电磁阀" suffix="" />
-        <node name="低压电磁阀" ds="低压电磁阀" suffix="" />
-        <node name="转换器旁通电磁阀" ds="转换器旁通电磁阀" suffix="" />
-        <node name="模式转换器与内机通讯故障" ds="模式转换器与内机通讯故障" suffix="" />
-        <node name="模式转换器与外机通讯故障" ds="模式转换器与外机通讯故障" suffix="" />
-        <node name="模式转换器内外机网络异常故障" ds="模式转换器内外机网络异常故障" suffix="" />
-        <node name="模式转换器无主通讯故障" ds="模式转换器无主通讯故障" suffix="" />
-        <node name="模式转换器内机识别异常" ds="模式转换器内机识别异常" suffix="" />
         <node name="高低位内机模式" ds="高低位内机模式" suffix="" />
         <node name="恒温模式控制" ds="恒温模式控制" suffix="" />
         <node name="程序版本号" ds="程序版本号" suffix="" />

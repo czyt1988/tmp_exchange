@@ -55,6 +55,7 @@ private slots:
     void on_horizontalSlider_valueChanged(int value);
 
     void valueRender(const QJsonObject& obj);
+    void onIoError(const QString& msg);
 
 private:
     void deleteTemplates();
