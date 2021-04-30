@@ -32,15 +32,19 @@ public:
     //
     GIDUTableModel *getIduModel() const;
 
-    //
+    //获取系统、模块、内机的节点信息
     const QList<GNodeInfo>& getModuleInfoList() const;
     const QList<GNodeInfo>& getSystemInfoList() const;
     const QList<GNodeInfo>& getIduInfoList() const;
 
+    //获取系统、模块、内机的故障信息
+    const QList<GNodeInfo>& getModuleFaultInfoList() const;
+    const QList<GNodeInfo>& getSystemFaultInfoList() const;
+    const QList<GNodeInfo>& getIduFaultInfoList() const;
+
     //更新数据
     void updateValue(const GNodeInfo& value);
 
-    const QString& getCanipField() const;
 
 private:
     void parse(QDomDocument& doc);
@@ -51,6 +55,8 @@ private:
     bool loadIduItemFromNode(QDomElement& nodeitem);
     void loadModuleInfo(QDomElement& root);
     bool loadModuleItemFromNode(QDomElement& nodeitem);
+
+    void loadFaultInfo(QDomElement& faultEle, QList<GNodeInfo>& res);
 
 private:
     QString mName;///< 模板名
@@ -63,7 +69,9 @@ private:
     QHash<QStandardItem *, GNodeInfo> mValueItemToNode;
     QHash<GNodeInfo, QStandardItem *> mNodeToItemValue;
 
-    QString mCanipfield;
+    QList<GNodeInfo> mSystemFaultSrc;
+    QList<GNodeInfo> mModuleFaultSrc;
+    QList<GNodeInfo> mIduFaultSrc;
 };
 
 #endif // GTEMPLATE_H

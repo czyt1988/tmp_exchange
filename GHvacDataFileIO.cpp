@@ -65,40 +65,54 @@ void GHvacDataFileIO::open(const QString& filepath)
         if (!f.contains("csv")) {
             continue;
         }
-        QElapsedTimer tic;
-        tic.start();
-        emit message(QStringLiteral("开始读取%1").arg(f));
-        TablePtr table = std::make_shared<TableType>();
-        table->setName(toTableName(f));
-        mZip->setCurrentFile(f);
-        QuaZipFile archived(mZip.get());
-        if (!archived.open(QIODevice::ReadOnly, nullptr)) {
-            continue;
-        }
-        QTextStream s(&archived);
-        s.setCodec(mSetting.codec.toLocal8Bit().data());
-        SACsvStream csv(&s);
-        QStringList header = csv.readCsvLine();
-        int dt1 = header.indexOf(mSetting.datetimefield);
-        int dt2 = header.indexOf(QStringLiteral("接收时间"));
-        table->setRowNames(header);
-        qDebug() << QStringLiteral("数据文件:") << f << QStringLiteral(" 数据头:") << header;
-        QVector<double> rd;
-        while (!csv.atEnd())
-        {
-            QStringList line = csv.readCsvLine();
-            converStringListToDoubleList(line, rd);
-            if (dt1 >= 0) {
-                rd[dt1] = formatDatetime(line[dt1]).toSecsSinceEpoch();
+        try{
+            QElapsedTimer tic;
+            tic.start();
+            emit message(QStringLiteral("开始读取%1").arg(f));
+            TablePtr table = std::make_shared<TableType>();
+            table->setName(toTableName(f));
+            mZip->setCurrentFile(f);
+            int linecount = getLineCount();
+            QuaZipFile archived(mZip.get());
+            if (!archived.open(QIODevice::ReadOnly, nullptr)) {
+                continue;
             }
-            if (dt2 >= 0) {
-                rd[dt2] = formatDatetime(line[dt2]).toSecsSinceEpoch();
+            QTextStream s(&archived);
+            s.setCodec(mSetting.codec.toLocal8Bit().data());
+            SACsvStream csv(&s);
+            QStringList header = csv.readCsvLine();
+            int dt1 = header.indexOf(mSetting.datetimefield);
+            int dt2 = header.indexOf(QStringLiteral("接收时间"));
+            table->setRowNames(header);
+            qDebug() << QStringLiteral("数据文件:") << f << QStringLiteral(" 数据头:") << header;
+            QVector<double> rd;
+            //预先分配好内存，避免溢出
+            QString msg = QStringLiteral("%1表预估内存:%2 MB").arg(toTableName(f)).arg(double(linecount*header.size()*sizeof(NumType))/1024.0/1024.0);
+            emit message(msg);
+            qDebug() << msg;
+            table->reserve(linecount);
+            qDebug() <<QStringLiteral("预分配内存完成");
+            while (!csv.atEnd())
+            {
+                QStringList line = csv.readCsvLine();
+                converStringListToDoubleList(line, rd);
+                if (dt1 >= 0) {
+                    rd[dt1] = formatDatetime(line[dt1]).toSecsSinceEpoch();
+                }
+                if (dt2 >= 0) {
+                    rd[dt2] = formatDatetime(line[dt2]).toSecsSinceEpoch();
+                }
+                table->appendColumn(rd.begin(), rd.end());
             }
-            table->appendColumn(rd.begin(), rd.end());
-        }
 
-        originTables.append(table);
-        emit message(QStringLiteral("读取%1完成，数据大小(%2,%3)耗时%4").arg(table->getName()).arg(table->rowCount()).arg(table->columnCount()).arg(tic.elapsed()));
+            originTables.append(table);
+            emit message(QStringLiteral("读取%1完成，数据大小(%2,%3)耗时%4").arg(table->getName()).arg(table->rowCount()).arg(table->columnCount()).arg(tic.elapsed()));
+        }
+        catch (std::bad_alloc e) {
+            qDebug() << QStringLiteral("内存溢出");
+            emit error(QStringLiteral("内存溢出，数据文件过大，请裁剪"));
+            return;
+        }
     }
     //开始对can ip进行聚合
     groupByCanIP(originTables);
@@ -378,4 +392,24 @@ void GHvacDataFileIO::orderByDatetime()
         qDebug() << t->getName();
         qDebug() << *t;
     }
+}
+
+
+int GHvacDataFileIO::getLineCount()
+{
+    QuaZipFile archived(mZip.get());
+
+    if (!archived.open(QIODevice::ReadOnly, nullptr)) {
+        return (8);
+    }
+    QTextStream s(&archived);
+    int l(0);
+
+    while (!s.atEnd())
+    {
+        s.readLine();
+        ++l;
+    }
+    qDebug() << QStringLiteral("行数：") << l;
+    return (l);
 }

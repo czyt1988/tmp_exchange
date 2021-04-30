@@ -8,7 +8,7 @@
 #include <QDir>
 #include "SATable.h"
 #include "GHvacDataInfo.h"
-
+#include "GNodeInfo.h"
 
 
 class GHvacDataFileIO : public QObject
@@ -21,13 +21,13 @@ public:
         , ParamError		= ZIP_PARAMERROR        ///< 参数异常
         , InternalError		= ZIP_INTERNALERROR
     };
+    typedef double			NumType;
     typedef SARowTable<double>	TableType;
     typedef TableType::TablePtr	TablePtr;
     GHvacDataFileIO(QObject *p = nullptr);
     ~GHvacDataFileIO();
     void setFileName(const QString& filepath);
     Error getError() const;
-
 
 public slots:
     void open(const QString& filepath);
@@ -67,6 +67,9 @@ private:
 
     //对时间排序
     void orderByDatetime();
+
+    //
+    int getLineCount();
 
 private:
     struct Setting {

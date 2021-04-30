@@ -8,12 +8,17 @@
 #include "SATable.h"
 #include <QJsonObject>
 
+/**
+ * @brief 保存读取后的结果，并通过@sa get 函数获取某一个时刻的json
+ */
 class GHvacDataInfo
 {
 public:
-    typedef SARowTable<double>	TableType;
+    typedef double			NumType;
+    typedef SARowTable<NumType>	TableType;
     typedef TableType::TablePtr	TablePtr;
     typedef TableType::SeriesPtr	SeriesPtr;
+
 public:
     GHvacDataInfo();
     void clear();

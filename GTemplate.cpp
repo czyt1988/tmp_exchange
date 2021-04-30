@@ -42,7 +42,6 @@ bool GTemplate::load(const QString& path)
 void GTemplate::clear()
 {
     mName = "";
-    mCanipfield = "can1 ip";
     mSystemModel->clear();
     mIduModel->clear();
     mValueItemToNode.clear();
@@ -90,6 +89,24 @@ const QList<GNodeInfo>& GTemplate::getIduInfoList() const
 }
 
 
+const QList<GNodeInfo>& GTemplate::getModuleFaultInfoList() const
+{
+    return (mModuleFaultSrc);
+}
+
+
+const QList<GNodeInfo>& GTemplate::getSystemFaultInfoList() const
+{
+    return (mSystemFaultSrc);
+}
+
+
+const QList<GNodeInfo>& GTemplate::getIduFaultInfoList() const
+{
+    return (mIduFaultSrc);
+}
+
+
 void GTemplate::updateValue(const GNodeInfo& value)
 {
     auto i = mNodeToItemValue.find(value);
@@ -98,12 +115,6 @@ void GTemplate::updateValue(const GNodeInfo& value)
         return;
     }
     i.value()->setText(value.mDisplayValue);
-}
-
-
-const QString& GTemplate::getCanipField() const
-{
-    return (mCanipfield);
 }
 
 
@@ -126,11 +137,24 @@ void GTemplate::loadsetting(QDomElement& root)
     if (settag.isNull()) {
         return;
     }
-    QDomElement t = settag.firstChildElement("canipfield");
+    QDomNodeList cl = settag.childNodes();
 
-    if (!t.isNull()) {
-        mCanipfield = t.text();
-        getIduModel()->setCanIpFieldID(mCanipfield);
+    for (int i = 0; i < cl.size(); ++i)
+    {
+        if (!cl.at(i).isElement()) {
+            continue;
+        }
+        QDomElement e = cl.at(i).toElement();
+        if (e.tagName() == "system-fault") {
+            mSystemFaultSrc.clear();
+            loadFaultInfo(e, mSystemFaultSrc);
+        }else if (e.tagName() == "module-fault") {
+            mModuleFaultSrc.clear();
+            loadFaultInfo(e, mModuleFaultSrc);
+        }else if (e.tagName() == "idu-fault") {
+            mIduFaultSrc.clear();
+            loadFaultInfo(e, mIduFaultSrc);
+        }
     }
 }
 
@@ -274,4 +298,25 @@ bool GTemplate::loadModuleItemFromNode(QDomElement& nodeitem)
     }
     mModuleInfo.append(ni);
     return (true);
+}
+
+
+void GTemplate::loadFaultInfo(QDomElement& faultEle, QList<GNodeInfo>& res)
+{
+    QDomNodeList cl = faultEle.childNodes();
+
+    for (int i = 0; i < cl.size(); ++i)
+    {
+        if (!cl.at(i).isElement()) {
+            continue;
+        }
+        QDomElement e = cl.at(i).toElement();
+        if (e.tagName() == "node") {
+            GNodeInfo ni;
+            ni.mName = e.attribute("name");
+            ni.mSrc = e.attribute("ds");
+            //故障节点其余信息不需要
+            res.append(ni);
+        }
+    }
 }

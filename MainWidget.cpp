@@ -116,6 +116,8 @@ void MainWidget::on_pushButtonBrower_clicked()
     ui->pushButtonBrower->setDisabled(true);
     ui->pushButtonRun->setDisabled(true);
     GHvacDataFileIO *io = new GHvacDataFileIO();
+    //设置相关信息
+
     QThread *readThread = new QThread();
 
     io->moveToThread(readThread);

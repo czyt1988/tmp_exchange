@@ -15,6 +15,8 @@ public:
     SASeries(const QString& n);
     virtual ~SASeries();
     virtual int dtype() const = 0;
+
+private:
 };
 
 

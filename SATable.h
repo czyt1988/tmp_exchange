@@ -132,6 +132,8 @@ public:
     SeriesType& operator[](int r);
     const SeriesType& operator[](int r) const;
 
+    void reserve(int size);
+
     /**
      * @brief 以最大列数进行列数修正，保证所有行同列
      */
@@ -633,7 +635,7 @@ const typename SARowTable<T>::SeriesPtr& SARowTable<T>::row(const QString& n) co
     int r = nameToIndex(n);
 
     if ((r < 0) || (r > rowCount())) {
-        return (nullptr);
+        return (m_nullseries);
     }
     return (row(r));
 }
@@ -664,6 +666,16 @@ template<typename T>
 const typename SARowTable<T>::SeriesType& SARowTable<T>::operator[](int r) const
 {
     return (*(row(r)));
+}
+
+
+template<typename T>
+void SARowTable<T>::reserve(int size)
+{
+    for (SeriesPtr p : m_d)
+    {
+        p->reserve(size);
+    }
 }
 
 

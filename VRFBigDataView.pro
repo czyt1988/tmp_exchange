@@ -35,7 +35,8 @@ SOURCES += \
     SACsvStream.cpp \
     SASeries.cpp \
     MainWindow.cpp \
-    GHvacDataInfo.cpp
+    GHvacDataInfo.cpp \
+    GFaultWidget.cpp
 
 HEADERS += \
         MainWidget.h \
@@ -50,13 +51,15 @@ HEADERS += \
     SASeries.h \
     MainWindow.h \
     SAAlgorithm.h \
-    GHvacDataInfo.h
+    GHvacDataInfo.h \
+    GFaultWidget.h
 
 FORMS += \
         MainWidget.ui \
     GItemDisplayWidget.ui \
     GModuleValueView.ui \
-    MainWindow.ui
+    MainWindow.ui \
+    GFaultWidget.ui
 
 include($$PWD/3rdparty/quazip-0.7.3/use_quazip.pri)
 
