@@ -1,11 +1,11 @@
-#ifndef GFAULTWIDGET_H
+﻿#ifndef GFAULTWIDGET_H
 #define GFAULTWIDGET_H
 
 #include <QtWidgets/QWidget>
 #include <QStandardItemModel>
 #include "GNodeInfo.h"
 #include "GHvacDataInfo.h"
-
+#include "GTemplate.h"
 namespace Ui {
 class GFaultWidget;
 }
@@ -18,19 +18,19 @@ public:
     explicit GFaultWidget(QWidget *parent = 0);
     ~GFaultWidget();
     void ininModel();
-    void updateFaultInfo(const QList<GNodeInfo>& sys, const QList<GNodeInfo>& module, const QList<GNodeInfo>& idu, const GHvacDataInfo& res);
-    void findFault(const GNodeInfo& info);
+    void setTemplate(GTemplate *temp);
+    void setData(const GHvacDataInfo& res);
+    void updateFaultInfo();
 
 protected:
+    int findFault(const GNodeInfo& info, GHvacDataInfo::TablePtr tp, const QIcon& icon = QIcon());
     void changeEvent(QEvent *e);
 
 private:
     Ui::GFaultWidget *ui;
     QStandardItemModel *m_model;
-    QList<GNodeInfo> mSystemFaultSrc;
-    QList<GNodeInfo> mModuleFaultSrc;
-    QList<GNodeInfo> mIduFaultSrc;
     GHvacDataInfo m_resInfo;
+    GTemplate *mTemplate;
 };
 
 #endif // GFAULTWIDGET_H

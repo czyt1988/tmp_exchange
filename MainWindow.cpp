@@ -1,6 +1,7 @@
-#include "MainWindow.h"
+﻿#include "MainWindow.h"
 #include "ui_MainWindow.h"
 #include "MainWidget.h"
+#include "GTemplate.h"
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
@@ -9,6 +10,8 @@ MainWindow::MainWindow(QWidget *parent) :
     mMainWidget = new MainWidget(this);
     setCentralWidget(mMainWidget);
     connect(mMainWidget, &MainWidget::message, this, &MainWindow::onMessage);
+    connect(mMainWidget, &MainWidget::fileReaded, this, &MainWindow::onFileReaded);
+    connect(mMainWidget, &MainWidget::templateChanged, this, &MainWindow::onTemplateChanged);
     showMaximized();
 }
 
@@ -37,4 +40,19 @@ void MainWindow::changeEvent(QEvent *e)
 void MainWindow::onMessage(const QString& msg)
 {
     ui->textEdit->append(msg);
+}
+
+
+void MainWindow::onFileReaded(GHvacDataInfo data)
+{
+    ui->widgetFaule->setData(data);
+    ui->widgetFaule->setTemplate(mMainWidget->getCurrentTemplate());
+    ui->widgetFaule->updateFaultInfo();
+}
+
+
+void MainWindow::onTemplateChanged(GTemplate *temp)
+{
+    ui->widgetFaule->setTemplate(temp);
+    ui->widgetFaule->updateFaultInfo();
 }

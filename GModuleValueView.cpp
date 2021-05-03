@@ -1,4 +1,4 @@
-#include "GModuleValueView.h"
+﻿#include "GModuleValueView.h"
 #include "ui_GModuleValueView.h"
 #include <QGridLayout>
 GModuleValueView::GModuleValueView(QWidget *parent) :
@@ -7,6 +7,7 @@ GModuleValueView::GModuleValueView(QWidget *parent) :
 {
     ui->setupUi(this);
     mLayout = new QGridLayout(this);
+    setBackgroundRole(QPalette::Base);
 }
 
 

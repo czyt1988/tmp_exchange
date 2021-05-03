@@ -1,8 +1,10 @@
-#ifndef MAINWINDOW_H
+﻿#ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
 
 #include <QMainWindow>
+#include "GHvacDataInfo.h"
+#include "GTemplate.h"
 class MainWidget;
 namespace Ui {
 class MainWindow;
@@ -21,6 +23,8 @@ protected:
 
 private slots:
     void onMessage(const QString& msg);
+    void onFileReaded(GHvacDataInfo data);
+    void onTemplateChanged(GTemplate *temp);
 
 private:
     Ui::MainWindow *ui;

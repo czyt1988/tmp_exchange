@@ -13,6 +13,9 @@ MainWidget::MainWidget(QWidget *parent) :
     ui(new Ui::MainWidget)
     , mCurrentSpeed(Speed1x)
     , mMode(NoneMode)
+    , mSpeed1(":/icon/icon/1x.svg")
+    , mSpeed2(":/icon/icon/2x.svg")
+    , mSpeed3(":/icon/icon/3x.svg")
 {
     ui->setupUi(this);
     connect(&mTimer, &QTimer::timeout, this, &MainWidget::onTimeout);
@@ -21,6 +24,8 @@ MainWidget::MainWidget(QWidget *parent) :
     ui->scrollArea->setWidget(mModuleWidget);
     ui->splitterSysModule->setStretchFactor(0, 1);
     ui->splitterSysModule->setStretchFactor(1, 5);
+    ui->splitterModuleAndIdu->setStretchFactor(0, 3);
+    ui->splitterModuleAndIdu->setStretchFactor(1, 1);
     setStopMode();
     setSpeed(Speed1x);
     loadTemplate();
@@ -50,6 +55,8 @@ void MainWidget::setTemplate(GTemplate *t)
             mCurrentTemplate->getIduModel()->setCanIps(mHvacInfo.iduCanIPs);
         }
     }
+    emit templateChanged(mCurrentTemplate);
+
     qDebug() << QStringLiteral("设置模板成功");
 }
 
@@ -75,6 +82,12 @@ void MainWidget::loadTemplate()
     if (ui->comboBoxTemplate->count() > 0) {
         ui->comboBoxTemplate->setCurrentIndex(0);
     }
+}
+
+
+GTemplate *MainWidget::getCurrentTemplate() const
+{
+    return (mCurrentTemplate);
 }
 
 
@@ -199,6 +212,8 @@ void MainWidget::onFileReaded(GHvacDataInfo info)
 
     ui->pushButtonBrower->setEnabled(true);
     ui->pushButtonRun->setEnabled(true);
+
+    emit fileReaded(info);
 }
 
 
@@ -274,27 +289,21 @@ void MainWidget::setSpeed(MainWidget::Speed s)
     {
     case Speed1x:
     {
-        QPixmap p(":/icon/icon/1x.svg");
-        p = p.scaledToHeight(ui->labelspeed->height());
-        ui->labelspeed->setPixmap(p);
+        ui->labelspeed->setPixmap(mSpeed1.pixmap(ui->labelspeed->size()));
         mTimer.setInterval(1000);
     }
     break;
 
     case Speed2x:
     {
-        QPixmap p(":/icon/icon/2x.svg");
-        p = p.scaledToHeight(ui->labelspeed->height());
-        ui->labelspeed->setPixmap(p);
+        ui->labelspeed->setPixmap(mSpeed2.pixmap(ui->labelspeed->size()));
         mTimer.setInterval(500);
     }
     break;
 
     case Speed3x:
     {
-        QPixmap p(":/icon/icon/3x.svg");
-        p = p.scaledToHeight(ui->labelspeed->height());
-        ui->labelspeed->setPixmap(p);
+        ui->labelspeed->setPixmap(mSpeed3.pixmap(ui->labelspeed->size()));
         mTimer.setInterval(300);
     }
     break;

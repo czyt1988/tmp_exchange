@@ -127,6 +127,7 @@ void GTemplate::parse(QDomDocument& doc)
     loadSystemInfo(rootEle);
     loadModuleInfo(rootEle);
     loadIduInfo(rootEle);
+    loadsetting(rootEle);
 }
 
 

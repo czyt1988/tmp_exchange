@@ -1,4 +1,4 @@
-#include "GItemDisplayWidget.h"
+﻿#include "GItemDisplayWidget.h"
 #include "ui_GItemDisplayWidget.h"
 
 GItemDisplayWidget::GItemDisplayWidget(QWidget *parent) :

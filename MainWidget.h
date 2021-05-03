@@ -32,6 +32,8 @@ public:
         , RuningMode
     };
 
+    GTemplate *getCurrentTemplate() const;
+
 protected:
     void changeEvent(QEvent *e);
 
@@ -78,6 +80,18 @@ signals:
      */
     void message(const QString& msg);
 
+    /**
+     * @brief 文件读取完成发射的信号
+     * @param info
+     */
+    void fileReaded(GHvacDataInfo info);
+
+    /**
+     * @brief 模板发生改变信号
+     * @param temp
+     */
+    void templateChanged(GTemplate *temp);
+
 private:
     Ui::MainWidget *ui;
     QList<GTemplate *> mTemplate;
@@ -87,6 +101,9 @@ private:
     QTimer mTimer;
     Speed mCurrentSpeed;
     Mode mMode;
+    QIcon mSpeed1;
+    QIcon mSpeed2;
+    QIcon mSpeed3;
 };
 
 #endif // MAINWIDGET_H
