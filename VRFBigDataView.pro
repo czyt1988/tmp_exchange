@@ -33,7 +33,6 @@ SOURCES += \
     GModuleValueView.cpp \
     GHvacDataFileIO.cpp \
     SACsvStream.cpp \
-    SASeries.cpp \
     MainWindow.cpp \
     GHvacDataInfo.cpp \
     GFaultWidget.cpp
@@ -48,7 +47,6 @@ HEADERS += \
     GModuleValueView.h \
     GHvacDataFileIO.h \
     SACsvStream.h \
-    SASeries.h \
     MainWindow.h \
     SAAlgorithm.h \
     GHvacDataInfo.h \

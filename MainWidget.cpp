@@ -8,6 +8,7 @@
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QJsonDocument>
+
 MainWidget::MainWidget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::MainWidget)

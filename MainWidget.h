@@ -7,6 +7,7 @@
 #include <QThread>
 #include <QTimer>
 #include "GHvacDataInfo.h"
+
 namespace Ui {
 class MainWidget;
 }

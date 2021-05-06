@@ -10,7 +10,7 @@
 #include "SAAlgorithm.h"
 
 /**
- * @brief 系列数据
+ * @brief 系列数据,系列允许设置名字
  */
 template<typename T>
 class SAVector : public QVector<T>
