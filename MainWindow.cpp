@@ -12,6 +12,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(mMainWidget, &MainWidget::message, this, &MainWindow::onMessage);
     connect(mMainWidget, &MainWidget::fileReaded, this, &MainWindow::onFileReaded);
     connect(mMainWidget, &MainWidget::templateChanged, this, &MainWindow::onTemplateChanged);
+    connect(ui->widgetFaule, &GFaultWidget::indexReques, mMainWidget, &MainWidget::toIndex);
     showMaximized();
 }
 
@@ -55,4 +56,9 @@ void MainWindow::onTemplateChanged(GTemplate *temp)
 {
     ui->widgetFaule->setTemplate(temp);
     ui->widgetFaule->updateFaultInfo();
+}
+
+
+void MainWindow::onFaultWidgetIndexReques(int index)
+{
 }

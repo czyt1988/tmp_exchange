@@ -35,6 +35,14 @@ public:
 
     GTemplate *getCurrentTemplate() const;
 
+public slots:
+
+    /**
+     * @brief 跳转到对应的索引
+     * @param i
+     */
+    void toIndex(int i);
+
 protected:
     void changeEvent(QEvent *e);
 

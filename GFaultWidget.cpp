@@ -2,6 +2,7 @@
 #include "ui_GFaultWidget.h"
 #include <algorithm>
 #include <QDebug>
+#define DATA_DATETIME    (Qt::UserRole + 1)
 GFaultWidget::GFaultWidget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::GFaultWidget)
@@ -113,15 +114,21 @@ int GFaultWidget::findFault(const GNodeInfo& info, GHvacDataInfo::TablePtr tp, c
     //说明找到，生成item
     int dcol = std::distance(ser->begin(), fr);
     int mr = m_model->rowCount();
+    QStandardItem *itemLoc = nullptr;
+    QStandardItem *itemName = nullptr;
+    QStandardItem *itemDatetime = nullptr;
 
     //位置
     if (icon.isNull()) {
-        m_model->setItem(mr, 0, new QStandardItem(tp->getName()));
+        itemLoc = new QStandardItem(tp->getName());
+        m_model->setItem(mr, 0, itemLoc);
     }else{
-        m_model->setItem(mr, 0, new QStandardItem(icon, tp->getName()));
+        itemLoc = new QStandardItem(icon, tp->getName());
+        m_model->setItem(mr, 0, itemLoc);
     }
     //故障名
-    m_model->setItem(mr, 1, new QStandardItem(info.mName));
+    itemName = new QStandardItem(info.mName);
+    m_model->setItem(mr, 1, itemName);
     //故障时间
     const GHvacDataInfo::SeriesPtr dateser = tp->row(m_resInfo.fieldOfDatetime);
 
@@ -135,7 +142,11 @@ int GFaultWidget::findFault(const GNodeInfo& info, GHvacDataInfo::TablePtr tp, c
     }
     QDateTime d = QDateTime::fromSecsSinceEpoch(dateser->at(dcol));
 
-    m_model->setItem(mr, 2, new QStandardItem(d.toString("yyyy-MM-dd HH:mm:ss")));
+    itemDatetime = new QStandardItem(d.toString("yyyy-MM-dd HH:mm:ss"));
+    m_model->setItem(mr, 2, itemDatetime);
+    itemDatetime->setData(d, DATA_DATETIME);
+    itemLoc->setData(d, DATA_DATETIME);
+    itemName->setData(d, DATA_DATETIME);
     return (1);
 }
 
@@ -152,4 +163,30 @@ void GFaultWidget::changeEvent(QEvent *e)
     default:
         break;
     }
+}
+
+
+/**
+ * @brief item双击跳转到对应的序号中
+ * @param index
+ */
+void GFaultWidget::on_tableView_doubleClicked(const QModelIndex& index)
+{
+    QStandardItem *item = m_model->itemFromIndex(index);
+
+    if (nullptr == item) {
+        return;
+    }
+    QVariant d = item->data(DATA_DATETIME);
+
+    if (!d.isValid()) {
+        return;
+    }
+    QDateTime datetime = d.toDateTime();
+
+    if (!datetime.isValid()) {
+        return;
+    }
+    int i = m_resInfo.allDateTimeScale.indexOf(datetime);
+    emit indexReques(i);
 }

@@ -92,6 +92,12 @@ GTemplate *MainWidget::getCurrentTemplate() const
 }
 
 
+void MainWidget::toIndex(int i)
+{
+    ui->horizontalSlider->setValue(i);
+}
+
+
 void MainWidget::changeEvent(QEvent *e)
 {
     QWidget::changeEvent(e);
@@ -372,9 +378,9 @@ void MainWidget::valueRender(const QJsonObject& obj)
             continue;
         }
         QJsonObject sys = (*i).toObject();
-        i = sys.find(n.mSrc);
+        i = sys.find(n.mSrc.toLower());
         if (i == sys.constEnd()) {
-            qDebug() << QStringLiteral("无法在system中找到参数key:") << n.mSrc;
+            qDebug() << QStringLiteral("无法在system中找到参数key:") << n.mSrc.toLower();
             continue;
         }
         n.mDisplayValue = (*i).toString();
@@ -396,9 +402,9 @@ void MainWidget::valueRender(const QJsonObject& obj)
             continue;
         }
         QJsonObject modulewithip = (*i).toObject();
-        i = modulewithip.find(n.mSrc);
+        i = modulewithip.find(n.mSrc.toLower());
         if (i == modulewithip.constEnd()) {
-            qDebug() << QStringLiteral("无法在module中找到参数key:") << n.mSrc;
+            qDebug() << QStringLiteral("无法在module中找到参数key:") << n.mSrc.toLower();
             continue;
         }
         n.mDisplayValue = (*i).toString();
@@ -427,10 +433,10 @@ void MainWidget::valueRender(const QJsonObject& obj)
         QJsonObject iduwithip = (*i).toObject();
         for (GNodeInfo& n : idunodes)
         {
-            i = iduwithip.find(n.mSrc);
+            i = iduwithip.find(n.mSrc.toLower());
             //所有canip遍历一遍
             if (i == iduwithip.constEnd()) {
-                qDebug() << QStringLiteral("无法在%1中找到参数key:").arg(kname) << n.mSrc;
+                qDebug() << QStringLiteral("无法在%1中找到参数key:").arg(kname) << n.mSrc.toLower();
                 continue;
             }
             n.mDisplayValue = (*i).toString();

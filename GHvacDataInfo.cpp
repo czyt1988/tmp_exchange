@@ -31,20 +31,20 @@ QJsonObject GHvacDataInfo::get(int toSecsSinceEpoch)
         if (t->getName().contains("system")) {
             for (int i = 0; i < size; ++i)
             {
-                sysobj.insert(header[i], QString::number(column->at(i)));
+                sysobj.insert(header[i].toLower(), QString::number(column->at(i)));
             }
         }else if (t->getName().contains("module")) {
             QJsonObject d;
             for (int i = 0; i < size; ++i)
             {
-                d.insert(header[i], QString::number(column->at(i)));
+                d.insert(header[i].toLower(), QString::number(column->at(i)));
             }
             moduleobj.insert(t->getName(), d);
         }else if (t->getName().contains("idu")) {
             QJsonObject d;
             for (int i = 0; i < size; ++i)
             {
-                d.insert(header[i], QString::number(column->at(i)));
+                d.insert(header[i].toLower(), QString::number(column->at(i)));
             }
             iduobj.insert(t->getName(), d);
         }

@@ -25,6 +25,7 @@ private slots:
     void onMessage(const QString& msg);
     void onFileReaded(GHvacDataInfo data);
     void onTemplateChanged(GTemplate *temp);
+    void onFaultWidgetIndexReques(int index);
 
 private:
     Ui::MainWindow *ui;

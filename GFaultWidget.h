@@ -22,9 +22,20 @@ public:
     void setData(const GHvacDataInfo& res);
     void updateFaultInfo();
 
+signals:
+
+    /**
+     * @brief 请求索引的跳转
+     * @param index 需要跳转的索引
+     */
+    void indexReques(int index);
+
 protected:
     int findFault(const GNodeInfo& info, GHvacDataInfo::TablePtr tp, const QIcon& icon = QIcon());
     void changeEvent(QEvent *e);
+
+private slots:
+    void on_tableView_doubleClicked(const QModelIndex& index);
 
 private:
     Ui::GFaultWidget *ui;

@@ -86,9 +86,24 @@
         </item>
         <item>
          <widget class="QTreeView" name="treeViewSystem">
+          <property name="uniformRowHeights">
+           <bool>true</bool>
+          </property>
+          <property name="sortingEnabled">
+           <bool>true</bool>
+          </property>
+          <property name="animated">
+           <bool>true</bool>
+          </property>
           <property name="headerHidden">
            <bool>false</bool>
           </property>
+          <attribute name="headerHighlightSections">
+           <bool>true</bool>
+          </attribute>
+          <attribute name="headerShowSortIndicator" stdset="0">
+           <bool>true</bool>
+          </attribute>
          </widget>
         </item>
        </layout>
@@ -142,8 +157,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>446</width>
-             <height>216</height>
+             <width>443</width>
+             <height>217</height>
             </rect>
            </property>
           </widget>
@@ -165,7 +180,14 @@
         </widget>
        </item>
        <item>
-        <widget class="QTableView" name="tableViewIdu"/>
+        <widget class="QTableView" name="tableViewIdu">
+         <property name="selectionMode">
+          <enum>QAbstractItemView::SingleSelection</enum>
+         </property>
+         <property name="selectionBehavior">
+          <enum>QAbstractItemView::SelectRows</enum>
+         </property>
+        </widget>
        </item>
       </layout>
      </widget>

@@ -70,6 +70,8 @@ void GHvacDataFileIO::open(const QString& filepath)
             tic.start();
             emit message(QStringLiteral("开始读取%1").arg(f));
             TablePtr table = std::make_shared<TableType>();
+            table->setCaseSensitivity(TableType::CaseInsensitive);
+            table->setMode(TableType::FixedMode);
             table->setName(toTableName(f));
             mZip->setCurrentFile(f);
             int linecount = getLineCount();
@@ -115,9 +117,32 @@ void GHvacDataFileIO::open(const QString& filepath)
         }
     }
     //开始对can ip进行聚合
-    groupByCanIP(originTables);
-    unionDateTime();
-    orderByDatetime();
+    try{
+        groupByCanIP(originTables);
+    }
+    catch (std::bad_alloc e) {
+        qDebug() << QStringLiteral("groupby过程内存溢出");
+        emit error(QStringLiteral("groupby过程内存溢出，数据文件过大，请裁剪"));
+        return;
+    }
+
+    try{
+        unionDateTime();
+    }
+    catch (std::bad_alloc e) {
+        qDebug() << QStringLiteral("时标对齐过程内存溢出");
+        emit error(QStringLiteral("时标对齐过程内存溢出，数据文件过大，请裁剪"));
+        return;
+    }
+
+    try{
+        orderByDatetime();
+    }
+    catch (std::bad_alloc e) {
+        qDebug() << QStringLiteral("按时间排序过程内存溢出");
+        emit error(QStringLiteral("按时间排序过程内存溢出，数据文件过大，请裁剪"));
+        return;
+    }
     qDebug() << filepath << QStringLiteral("完成解析");
     emit readed(mHvacInfo);
 }

@@ -80,6 +80,37 @@ QString SAVector<T>::getName() const
 
 /**
  * @brief 以行为基础的数据表
+ *
+ * 表格形如：
+ *
+ * _______________________________
+ * |name| 0 | 1 | 2 | 3 | …… | n |
+ * 行名字  -> 列索引
+ * 表内容：
+ * -------------------------------
+ * |row1| 1 | 2 | 1 | 0 | …… | 6 |
+ * |row2| 4 | 5 | 6 | 7 | …… | 8 |
+ * ………………
+ * |rown| 9 | 8 | 7 | 6 | …… | 0 |
+ * -------------------------------
+ *
+ * @code
+ * SARowTable<int> table;
+ * table.setRowNames({"row1","row2",……,"rown"});
+ * table.appendColumn({1,4,……,9});
+ * table.appendColumn({2,5,……,8});
+ * table.appendColumn({1,6,……,7});
+ * table.appendColumn({0,7,……,6});
+ * ……
+ * table.appendColumn({6,8,……,0});
+ * @endcode
+ *
+ * 可以通过行序号进行索引
+ * table[1] //row2
+ * 可以索引到单元格
+ * table.cell(1,2) //row2[2]:6 等同table[1][2]
+ * 可以通过行名索引到单元格
+ * table["row2"][2] //row2[2]:6 等同table[1][2]
  */
 template<typename T>
 class SARowTable
@@ -88,6 +119,10 @@ public:
     enum Mode {
         FixedMode,      ///< 固定模式，表的列不会随着行的变化而变化(默认)
         ExpandMode      ///< 扩展模式，表的列是浮动的，如果插入一行比原来要宽，会自动扩充表的列数
+    };
+    enum CaseSensitivity {
+        CaseInsensitive,        ///< 大小写不敏感
+        CaseSensitive           ///< 大小写敏感
     };
     typedef T					Type;
     typedef SAVector<T>				SeriesType;
@@ -120,7 +155,7 @@ public:
     template<typename Ite1, typename Ite2>
     void appendColumn(Ite1 b, Ite2 e);
     void appendColumn(std::initializer_list<T> args);
-    int nameToIndex(const QString& n, Qt::CaseSensitivity cs = Qt::CaseInsensitive) const;
+    int nameToIndex(const QString& n) const;
     SeriesPtr& row(int r);
     const SeriesPtr& row(int r) const;
     SeriesPtr& row(const QString& n);
@@ -131,6 +166,8 @@ public:
 
     SeriesType& operator[](int r);
     const SeriesType& operator[](int r) const;
+    SeriesType& operator[](const QString& rowname);
+    const SeriesType& operator[](const QString& rowname) const;
 
     void reserve(int size);
 
@@ -139,16 +176,17 @@ public:
      */
     void fixSize();
 
-    ///
-    /// \brief 表的行数
-    /// \return
-    ///
+    /**
+     * @brief 表的行数
+     * @return
+     */
     int rowCount() const;
 
-    ///
-    /// \brief 表的列数
-    /// \return
-    ///
+
+    /**
+     * @brief 表的列数
+     * @return
+     */
     int columnCount() const;
 
     /**
@@ -190,7 +228,7 @@ public:
      * @param cs
      * @return
      */
-    TablePtr takeByValue(const QString& field, T value, Qt::CaseSensitivity cs = Qt::CaseInsensitive) const;
+    TablePtr takeByValue(const QString& field, T value) const;
 
     /**
      * @brief groupby
@@ -198,13 +236,13 @@ public:
      * @param cs
      * @return
      */
-    QPair<QList<TablePtr>, QList<T> > groupBy(const QString& field, Qt::CaseSensitivity cs = Qt::CaseInsensitive) const;
+    QPair<QList<TablePtr>, QList<T> > groupBy(const QString& field) const;
 
     /**
      * @brief orderBy
      * @param sn
      */
-    void orderBy(const QString& sn, Qt::CaseSensitivity cs = Qt::CaseInsensitive);
+    void orderBy(const QString& sn);
     void orderBy(int rindex);
 
     /**
@@ -213,24 +251,36 @@ public:
      * @param v
      * @return
      */
-    QPair<T, int> lowerBound(const T& v, const QString& sortedfield, Qt::CaseSensitivity cs = Qt::CaseInsensitive) const;
+    QPair<T, int> lowerBound(const T& v, const QString& sortedfield) const;
     QPair<T, int> lowerBound(const T& v, int r) const;
-    QPair<T, int> upperBound(const T& v, const QString& sortedfield, Qt::CaseSensitivity cs = Qt::CaseInsensitive) const;
+    QPair<T, int> upperBound(const T& v, const QString& sortedfield) const;
     QPair<T, int> upperBound(const T& v, int r) const;
 
+    /**
+     * @brief 设置名字查询时是否对大小写敏感
+     * @param cs
+     */
+    void setCaseSensitivity(CaseSensitivity cs);
+
+    /**
+     * @brief 判断是否大小写敏感
+     * @return
+     */
+    bool isCaseSensitivity() const;
 
 private:
     SAVector<SeriesPtr> m_d;
     size_t m_columns;
     Mode m_mode;
     SeriesPtr m_nullseries;
+    CaseSensitivity m_caseSensitivity;
 };
 
 namespace SA {
 template<typename T>
-typename SARowTable<T>::TablePtr takeByValue(const SARowTable<T>& table, const QString& field, T value, Qt::CaseSensitivity cs = Qt::CaseInsensitive)
+typename SARowTable<T>::TablePtr takeByValue(const SARowTable<T>& table, const QString& field, T value)
 {
-    const int r = table.nameToIndex(field, cs);
+    const int r = table.nameToIndex(field);
 
     typename SARowTable<T>::TablePtr res = SARowTable<T>::makeTable();
 
@@ -276,12 +326,12 @@ typename SARowTable<T>::TablePtr takeByValue(const SARowTable<T>& table, int r, 
  * @return 返回一个pair，first：group by后的结构表，second，group by的结果
  */
 template<typename T>
-QPair<QList<typename SARowTable<T>::TablePtr>, QList<T> > groupby(const SARowTable<T>& table, const QString& field, Qt::CaseSensitivity cs = Qt::CaseInsensitive)
+QPair<QList<typename SARowTable<T>::TablePtr>, QList<T> > groupby(const SARowTable<T>& table, const QString& field)
 {
     QList<typename SARowTable<T>::TablePtr> restables;
     QList<T> gr;
 
-    int rindex = table.nameToIndex(field, cs);
+    int rindex = table.nameToIndex(field);
 
     Q_ASSERT_X(rindex >= 0, "groupby", "unknow field");
     typename SARowTable<T>::SeriesPtr r = table.row(rindex);
@@ -345,9 +395,9 @@ std::shared_ptr<SAVector<ValueWithIndex<T> > > makeIndexSeries(typename SARowTab
 
 
 template<typename T>
-void orderBy(SARowTable<T>& table, const QString& field, Qt::CaseSensitivity cs = Qt::CaseInsensitive)
+void orderBy(SARowTable<T>& table, const QString& field)
 {
-    const int r = table.nameToIndex(field, cs);
+    const int r = table.nameToIndex(field);
 
     typename SARowTable<T>::SeriesPtr row = table.row(r);
     Q_ASSERT_X(row != nullptr, "orderBy", "unknow field");
@@ -400,12 +450,14 @@ void orderBy(SARowTable<T>& table, int r)
 
 template<typename T>
 SARowTable<T>::SARowTable() : m_columns(0), m_mode(FixedMode)
+    , m_caseSensitivity(CaseInsensitive)
 {
 }
 
 
 template<typename T>
 SARowTable<T>::SARowTable(int rows, int columns) : m_mode(FixedMode)
+    , m_caseSensitivity(CaseInsensitive)
 {
     m_d.clear();
     m_d.reserve(rows);
@@ -579,9 +631,10 @@ typename SARowTable<T>::SeriesPtr SARowTable<T>::makeSeries()
 
 
 template<typename T>
-int SARowTable<T>::nameToIndex(const QString& n, Qt::CaseSensitivity cs) const
+int SARowTable<T>::nameToIndex(const QString& n) const
 {
     int r = rowCount();
+    Qt::CaseSensitivity cs = isCaseSensitivity() ? Qt::CaseSensitive : Qt::CaseInsensitive;
 
     for (int i = 0; i < r; ++i)
     {
@@ -670,6 +723,20 @@ const typename SARowTable<T>::SeriesType& SARowTable<T>::operator[](int r) const
 
 
 template<typename T>
+typename SARowTable<T>::SeriesType& SARowTable<T>::operator[](const QString& rowname)
+{
+    return (*(row(rowname)));
+}
+
+
+template<typename T>
+const typename SARowTable<T>::SeriesType& SARowTable<T>::operator[](const QString& rowname) const
+{
+    return (*(row(rowname)));
+}
+
+
+template<typename T>
 void SARowTable<T>::reserve(int size)
 {
     for (SeriesPtr p : m_d)
@@ -715,7 +782,7 @@ int SARowTable<T>::columnCount() const
 
 
 template<typename T>
-void SARowTable<T>::setMode(SARowTable::Mode m)
+void SARowTable<T>::setMode(typename SARowTable<T>::Mode m)
 {
     m_mode = m;
 }
@@ -781,23 +848,23 @@ void SARowTable<T>::setRowNames(const QStringList& ns)
 
 
 template<typename T>
-typename SARowTable<T>::TablePtr SARowTable<T>::takeByValue(const QString& field, T value, Qt::CaseSensitivity cs) const
+typename SARowTable<T>::TablePtr SARowTable<T>::takeByValue(const QString& field, T value) const
 {
-    return (SA::takeByValue(*this, field, value, cs));
+    return (SA::takeByValue(*this, field, value));
 }
 
 
 template<typename T>
-QPair<QList<typename SARowTable<T>::TablePtr>, QList<T> > SARowTable<T>::groupBy(const QString& field, Qt::CaseSensitivity cs) const
+QPair<QList<typename SARowTable<T>::TablePtr>, QList<T> > SARowTable<T>::groupBy(const QString& field) const
 {
-    return (SA::groupby(*this, field, cs));
+    return (SA::groupby(*this, field));
 }
 
 
 template<typename T>
-void SARowTable<T>::orderBy(const QString& sn, Qt::CaseSensitivity cs)
+void SARowTable<T>::orderBy(const QString& sn)
 {
-    SA::orderBy(*this, sn, cs);
+    SA::orderBy(*this, sn);
 }
 
 
@@ -809,9 +876,9 @@ void SARowTable<T>::orderBy(int rindex)
 
 
 template<typename T>
-QPair<T, int> SARowTable<T>::lowerBound(const T& v, const QString& sortedfield, Qt::CaseSensitivity cs) const
+QPair<T, int> SARowTable<T>::lowerBound(const T& v, const QString& sortedfield) const
 {
-    const int r = nameToIndex(sortedfield, cs);
+    const int r = nameToIndex(sortedfield);
 
     return (lowerBound(v, r));
 }
@@ -833,9 +900,9 @@ QPair<T, int> SARowTable<T>::lowerBound(const T& v, int r) const
 
 
 template<typename T>
-QPair<T, int> SARowTable<T>::upperBound(const T& v, const QString& sortedfield, Qt::CaseSensitivity cs) const
+QPair<T, int> SARowTable<T>::upperBound(const T& v, const QString& sortedfield) const
 {
-    const int r = nameToIndex(sortedfield, cs);
+    const int r = nameToIndex(sortedfield);
 
     return (upperBound(v, r));
 }
@@ -853,6 +920,20 @@ QPair<T, int> SARowTable<T>::upperBound(const T& v, int r) const
     size_t dis = std::distance(prow->begin(), ite);
 
     return (qMakePair<T, int>(*ite, dis));
+}
+
+
+template<typename T>
+void SARowTable<T>::setCaseSensitivity(typename SARowTable<T>::CaseSensitivity cs)
+{
+    m_caseSensitivity = cs;
+}
+
+
+template<typename T>
+bool SARowTable<T>::isCaseSensitivity() const
+{
+    return (m_caseSensitivity == CaseSensitive);
 }
 
 
