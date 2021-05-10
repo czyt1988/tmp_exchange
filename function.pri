@@ -55,6 +55,7 @@ defineReplace(saCopyLibToBin) {
     CMD = $$saCopyLibCMD($$1)
     QMAKE_POST_LINK += $${CMD}
     export(QMAKE_POST_LINK)
+    return (true)
 }
 
 # 生成拷贝第三方库的cmd命令 arg1: lib路径，arg2:lib名称 此函数需要自己定义lib路径，将拷贝到$$BIN_DIR下
@@ -62,6 +63,7 @@ defineReplace(saCopyFullPathLibToBin) {
     CMD = $$saCopyFullPathCMD($$1,$$2)
     QMAKE_POST_LINK += $${CMD}
     export(QMAKE_POST_LINK)
+    return (true)
 }
 
 

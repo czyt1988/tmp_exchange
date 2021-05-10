@@ -804,8 +804,30 @@
             <node name="主控与外风机2驱动通讯故障" ds="主控与外风机2驱动通讯故障" suffix="" />
             <node name="外风机2驱动模块温度过高保护" ds="外风机2驱动模块温度过高保护" suffix="" />
             <node name="外风机2驱动模块温度传感器故障" ds="外风机2驱动模块温度传感器故障" suffix="" />
+            <node name="压缩机驱动板地址错误" ds="压缩机驱动板地址错误" suffix="" />
+            <node name="压缩机2壳顶感温包故障" ds="压缩机2壳顶感温包故障" suffix="" />
+            <node name="压缩机2壳顶感温包脱落" ds="压缩机2壳顶感温包脱落" suffix="" />
+            <node name="换热器气出感温包故障" ds="换热器气出感温包故障" suffix="" />
+            <node name="阀门异常" ds="阀门异常" suffix="" />
+            <node name="直流电机故障" ds="直流电机故障" suffix="" />
+            <node name="压缩机排气温度过高保护" ds="压缩机排气温度过高保护" suffix="" />
+            <node name="外机压力异常保护" ds="外机压力异常保护" suffix="" />
+            <node name="回油2温度传感器故障" ds="回油2温度传感器故障" suffix="" />
+            <node name="回油1管路堵故障" ds="回油1管路堵故障" suffix="" />
+            <node name="压缩机2壳顶高温保护" ds="压缩机2壳顶高温保护" suffix="" />
+            <node name="过冷器气进温度故障" ds="过冷器气进温度故障" suffix="" />
+            <node name="过冷器液进温度故障" ds="过冷器液进温度故障" suffix="" />
+            <node name="待机时驱动发送频繁保护" ds="待机时驱动发送频繁保护" suffix="" />
+            <node name="系统压力比过低保护" ds="系统压力比过低保护" suffix="" />
+            <node name="系统压力比过高保护" ds="系统压力比过高保护" suffix="" />
+            <node name="排气过热度过低标志" ds="排气过热度过低标志" suffix="" />
+            <node name="分户计费控制器通讯故障" ds="分户计费控制器通讯故障" suffix="" />
+            <node name="蓄热模块电子膨胀阀泄漏故障" ds="蓄热模块电子膨胀阀泄漏故障" suffix="" />
+            <node name="蓄热模块类保护停机故障" ds="蓄热模块类保护停机故障" suffix="" />
+            <node name="冷凝器进管温度传感器故障" ds="冷凝器进管温度传感器故障" suffix="" />
         </module-fault>
         <idu-fault>
+            <node name="防冻结保护" ds="防冻结保护" suffix="" />
             <node name="多联机室内机故障" ds="多联机室内机故障" suffix="" />
             <node name="内外机通讯故障" ds="内外机通讯故障" suffix="" />
             <node name="模式冲突" ds="模式冲突" suffix="" />
@@ -854,6 +876,12 @@
             <node name="ec循环水泵故障" ds="ec循环水泵故障" suffix="" />
             <node name="分水阀设置故障" ds="分水阀设置故障" suffix="" />
             <node name="水流开关故障" ds="水流开关故障" suffix="" />
+            <node name="内风机驱动直流母线电压过低保护" ds="内风机驱动直流母线电压过低保护" suffix="" />
+            <node name="内风机驱动直流母线电压过高保护" ds="内风机驱动直流母线电压过高保护" suffix="" />
+            <node name="内风机驱动ipm模块保护" ds="内风机驱动ipm模块保护" suffix="" />
+            <node name="内风机启动失败" ds="内风机启动失败" suffix="" />
+            <node name="内风机驱动模块复位" ds="内风机驱动模块复位" suffix="" />
+            <node name="内风机过流保护" ds="内风机过流保护" suffix="" />
             <node name="内风机驱动电流检测电路故障" ds="内风机驱动电流检测电路故障" suffix="" />
             <node name="内风机失步保护" ds="内风机失步保护" suffix="" />
             <node name="主控与内风机驱动通讯故障" ds="主控与内风机驱动通讯故障" suffix="" />
