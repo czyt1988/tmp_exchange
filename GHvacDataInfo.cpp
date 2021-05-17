@@ -66,7 +66,7 @@ QList<GHvacDataInfo::TablePtr> GHvacDataInfo::getSystemTables() const
 {
     QList<GHvacDataInfo::TablePtr> res;
 
-    for (TablePtr t : tables)
+    for (TablePtr t : this->tables)
     {
         if (t->getName().contains("system")) {
             res.append(t);
@@ -84,7 +84,7 @@ QList<GHvacDataInfo::TablePtr> GHvacDataInfo::getModuleTables() const
 {
     QList<GHvacDataInfo::TablePtr> res;
 
-    for (TablePtr t : tables)
+    for (TablePtr t : this->tables)
     {
         if (t->getName().contains("module")) {
             res.append(t);
@@ -102,7 +102,7 @@ QList<GHvacDataInfo::TablePtr> GHvacDataInfo::getIduTables() const
 {
     QList<GHvacDataInfo::TablePtr> res;
 
-    for (TablePtr t : tables)
+    for (TablePtr t : this->tables)
     {
         if (t->getName().contains("idu")) {
             res.append(t);

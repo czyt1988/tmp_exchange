@@ -1,7 +1,7 @@
 ﻿#include "GPlotWidget.h"
 #include "ui_GPlotWidget.h"
 #include "SATable.h"
-
+#include <QDebug>
 #define ROLE_ITEM_DATA_HVACTYPE		(Qt::UserRole+1)
 #define ITEM_DATA_TYPE_System		1
 #define ITEM_DATA_TYPE_Module		2
@@ -61,23 +61,27 @@ void GPlotWidget::makeTree(int itemDataType)
     QList<GHvacDataInfo::TablePtr> tables;
     QString srcTableName = "";
     QString replaceSrcTableName = "";
+    QList<GNodeInfo> infos;
 
     switch (itemDataType)
     {
     case ITEM_DATA_TYPE_System:
         tables = m_data.getSystemTables();
+        infos = mTemplate->getSystemInfoList();
         srcTableName = "system";
         replaceSrcTableName = QStringLiteral("系统");
         break;
 
     case ITEM_DATA_TYPE_Module:
         tables = m_data.getModuleTables();
+        infos = mTemplate->getModuleInfoList();
         srcTableName = "module";
         replaceSrcTableName = QStringLiteral("模块");
         break;
 
     case ITEM_DATA_TYPE_Idu:
         tables = m_data.getIduTables();
+        infos = mTemplate->getIduInfoList();
         srcTableName = "idu";
         replaceSrcTableName = QStringLiteral("内机");
         break;
@@ -88,7 +92,6 @@ void GPlotWidget::makeTree(int itemDataType)
 
 
     if (!tables.isEmpty()) {
-        const QList<GNodeInfo>& infos = mTemplate->getSystemInfoList();
         for (GHvacDataInfo::TablePtr t : tables)
         {
             QString tname = t->getName();
@@ -124,5 +127,13 @@ QString GPlotWidget::findNameBySrc(const QList<GNodeInfo>& infos, const QString&
             return (i.mName);
         }
     }
+    QStringList ss;
+
+    for (auto m : infos)
+    {
+        ss << m.mSrc;
+    }
+    qDebug()	<< QStringLiteral("无法找到:") << src
+            <<"    " << ss;
     return (QString());
 }
