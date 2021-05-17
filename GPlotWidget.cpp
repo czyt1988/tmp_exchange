@@ -99,11 +99,12 @@ void GPlotWidget::makeTree(int itemDataType)
             QStringList ns = t->rowNames();
             for (const QString& n : ns)
             {
-                if (n.isEmpty()) {
+                QString displayname = findNameBySrc(infos, n);
+                if (n.isEmpty() || displayname.isEmpty()) {
                     continue;
                 }
-                QString displayname = findNameBySrc(infos, n);
                 QStandardItem *item = new QStandardItem(displayname);
+                item->setCheckable(true);
                 item->setData(itemDataType, ROLE_ITEM_DATA_HVACTYPE);
                 item->setData(n, ROLE_ITEM_DATA_SRC);
                 baseItem->appendRow(item);
