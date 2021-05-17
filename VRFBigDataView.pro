@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui xml
+QT       += core gui xml printsupport
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 include($$PWD/common.pri)
@@ -24,6 +24,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 
 SOURCES += \
+    GPlotWidget.cpp \
         main.cpp \
         MainWidget.cpp \
     GNodeInfo.cpp \
@@ -35,9 +36,11 @@ SOURCES += \
     SACsvStream.cpp \
     MainWindow.cpp \
     GHvacDataInfo.cpp \
-    GFaultWidget.cpp
+    GFaultWidget.cpp \
+    qcustomplot.cpp
 
 HEADERS += \
+    GPlotWidget.h \
         MainWidget.h \
     GNodeInfo.h \
     GTemplate.h \
@@ -50,9 +53,11 @@ HEADERS += \
     MainWindow.h \
     SAAlgorithm.h \
     GHvacDataInfo.h \
-    GFaultWidget.h
+    GFaultWidget.h \
+    qcustomplot.h
 
 FORMS += \
+    GPlotWidget.ui \
         MainWidget.ui \
     GItemDisplayWidget.ui \
     GModuleValueView.ui \

@@ -1,4 +1,4 @@
-#ifndef GHVACDATAINFO_H
+﻿#ifndef GHVACDATAINFO_H
 #define GHVACDATAINFO_H
 
 #include <QtCore/qglobal.h>
@@ -24,6 +24,16 @@ public:
     void clear();
     QJsonObject get(int toSecsSinceEpoch);
 
+    //获取系统表
+    QList<TablePtr> getSystemTables() const;
+
+    //获取模块表
+    QList<TablePtr> getModuleTables() const;
+
+    //获取内机表
+    QList<TablePtr> getIduTables() const;
+
+public:
     QList<int> moduleCanIPs;
     QList<int> iduCanIPs;
     QList<QDateTime> allDateTimeScale;

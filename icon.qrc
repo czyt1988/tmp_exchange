@@ -10,5 +10,6 @@
         <file>icon/system-fault.svg</file>
         <file>icon/module-fault.svg</file>
         <file>icon/idu-fault.svg</file>
+        <file>icon/plotWindow.png</file>
     </qresource>
 </RCC>

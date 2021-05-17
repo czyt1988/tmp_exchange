@@ -9,6 +9,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
     mMainWidget = new MainWidget(this);
     setCentralWidget(mMainWidget);
+    mPlotWindow = new GPlotWidget();
     connect(mMainWidget, &MainWidget::message, this, &MainWindow::onMessage);
     connect(mMainWidget, &MainWidget::fileReaded, this, &MainWindow::onFileReaded);
     connect(mMainWidget, &MainWidget::templateChanged, this, &MainWindow::onTemplateChanged);
@@ -45,9 +46,13 @@ void MainWindow::onMessage(const QString& msg)
 
 void MainWindow::onFileReaded(GHvacDataInfo data)
 {
+    //给故障窗口传递数据
     ui->widgetFaule->setData(data);
     ui->widgetFaule->setTemplate(mMainWidget->getCurrentTemplate());
     ui->widgetFaule->updateFaultInfo();
+    //给绘图窗口传递数据
+    mPlotWindow->setData(data);
+    mPlotWindow->setTemplate(mMainWidget->getCurrentTemplate());
 }
 
 
@@ -55,4 +60,11 @@ void MainWindow::onTemplateChanged(GTemplate *temp)
 {
     ui->widgetFaule->setTemplate(temp);
     ui->widgetFaule->updateFaultInfo();
+    mPlotWindow->setTemplate(temp);
+}
+
+
+void MainWindow::on_actionPlotWindow_triggered()
+{
+    mPlotWindow->show();
 }

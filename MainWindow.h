@@ -5,6 +5,7 @@
 #include <QMainWindow>
 #include "GHvacDataInfo.h"
 #include "GTemplate.h"
+#include "GPlotWidget.h"
 class MainWidget;
 namespace Ui {
 class MainWindow;
@@ -26,9 +27,12 @@ private slots:
     void onFileReaded(GHvacDataInfo data);
     void onTemplateChanged(GTemplate *temp);
 
+    void on_actionPlotWindow_triggered();
+
 private:
     Ui::MainWindow *ui;
     MainWidget *mMainWidget;
+    GPlotWidget *mPlotWindow;
 };
 
 #endif // MAINWINDOW_H
