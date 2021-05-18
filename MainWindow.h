@@ -6,17 +6,30 @@
 #include "GHvacDataInfo.h"
 #include "GTemplate.h"
 #include "GPlotWidget.h"
-class MainWidget;
-namespace Ui {
-class MainWindow;
-}
+#include "SARibbonMainWindow.h"
+#include "MainWidget.h"
+#include <GFaultWidget.h>
+#include <QtCore/QVariant>
+#include <QtWidgets/QAction>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QDockWidget>
+#include <QtWidgets/QMainWindow>
+#include <QtWidgets/QStatusBar>
+#include <QtWidgets/QTabWidget>
+#include <QtWidgets/QTextEdit>
+#include <QtWidgets/QVBoxLayout>
+#include <QtWidgets/QWidget>
+#include <QScopedPointer>
+#include "SARibbonBar.h"
+#include "SARibbonCategory.h"
+#include "SARibbonPannel.h"
 
-class MainWindow : public QMainWindow
+class MainWindow : public SARibbonMainWindow
 {
     Q_OBJECT
 
 public:
-    explicit MainWindow(QWidget *parent = 0);
+    explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
 protected:
@@ -28,12 +41,43 @@ private slots:
     void onTemplateChanged(GTemplate *temp);
     void onFaultWidgetIndexReques(int index);
 
-    void on_actionPlotWindow_triggered();
+    void onActionOpenTriggered();
+    void onActionDataViewWindowTriggered();
+    void onActionFigureWindowTriggered();
+    void onOpenFile(const QString& filename);
+    void onOpenFailed();
 
 private:
-    Ui::MainWindow *ui;
-    MainWidget *mMainWidget;
-    GPlotWidget *mPlotWindow;
+    void init();
+
+private:
+    class UI {
+public:
+        QAction *actionOpen;
+        QAction *actionDataViewWindow;
+        QAction *actionFigureWindow;
+        QWidget *centralwidget;
+        QVBoxLayout *verticalLayout_3;
+        QTabWidget *tabWidget;
+        QStatusBar *statusbar;
+        QDockWidget *dockWidgetMessage;
+        QWidget *dockWidgetContents;
+        QVBoxLayout *verticalLayout;
+        QTextEdit *textEdit;
+        QDockWidget *dockWidgetFault;
+        QWidget *dockWidgetContents_2;
+        QVBoxLayout *verticalLayout_2;
+        GFaultWidget *widgetFaule;
+        MainWidget *dataReviewWidget;
+        GPlotWidget *dataPlotWidget;
+        SARibbonCategory *categoryMain;
+        SARibbonCategory *categoryDataView;
+        SARibbonCategory *categoryFigure;
+        SARibbonPannel *main_filePannel;
+        SARibbonPannel *main_WindowPannel;
+        void retranslateUi(MainWindow *w);
+    };
+    QScopedPointer<UI> ui;
 };
 
 #endif // MAINWINDOW_H

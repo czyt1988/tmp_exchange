@@ -92,31 +92,7 @@ GTemplate *MainWidget::getCurrentTemplate() const
 }
 
 
-void MainWidget::toIndex(int i)
-{
-    ui->horizontalSlider->setValue(i);
-}
-
-
-void MainWidget::changeEvent(QEvent *e)
-{
-    QWidget::changeEvent(e);
-    switch (e->type())
-    {
-    case QEvent::LanguageChange:
-        ui->retranslateUi(this);
-        break;
-
-    default:
-        break;
-    }
-}
-
-
-/**
- * @brief MainWidget::on_pushButtonBrower_clicked
- */
-void MainWidget::on_pushButtonBrower_clicked()
+void MainWidget::open()
 {
     bool ispause = false;
 
@@ -132,8 +108,6 @@ void MainWidget::on_pushButtonBrower_clicked()
         }
         return;
     }
-    ui->lineEdit->setText(filepath);
-    ui->pushButtonBrower->setDisabled(true);
     ui->pushButtonRun->setDisabled(true);
     GHvacDataFileIO *io = new GHvacDataFileIO();
     //设置相关信息
@@ -160,6 +134,35 @@ void MainWidget::on_pushButtonBrower_clicked()
     emit openFile(filepath);
 
     setNoneMode();
+}
+
+
+void MainWidget::toIndex(int i)
+{
+    ui->horizontalSlider->setValue(i);
+}
+
+
+void MainWidget::changeEvent(QEvent *e)
+{
+    QWidget::changeEvent(e);
+    switch (e->type())
+    {
+    case QEvent::LanguageChange:
+        ui->retranslateUi(this);
+        break;
+
+    default:
+        break;
+    }
+}
+
+
+/**
+ * @brief MainWidget::on_pushButtonBrower_clicked
+ */
+void MainWidget::on_pushButtonBrower_clicked()
+{
 }
 
 
@@ -201,7 +204,6 @@ void MainWidget::onFileReaded(GHvacDataInfo info)
     }
     //设置范围
     if (mHvacInfo.allDateTimeScale.size() <= 0) {
-        ui->pushButtonBrower->setEnabled(true);
         ui->pushButtonRun->setEnabled(true);
         QMessageBox::warning(this, QStringLiteral("警告"), QStringLiteral("无有效数据"));
         return;
@@ -217,7 +219,6 @@ void MainWidget::onFileReaded(GHvacDataInfo info)
     }
     //设置timmer
 
-    ui->pushButtonBrower->setEnabled(true);
     ui->pushButtonRun->setEnabled(true);
 
     emit fileReaded(info);
@@ -226,7 +227,6 @@ void MainWidget::onFileReaded(GHvacDataInfo info)
 
 void MainWidget::onIOErrRec(const QString& msg)
 {
-    ui->pushButtonBrower->setEnabled(true);
     ui->pushButtonRun->setEnabled(true);
     emit message(msg);
 }
@@ -454,8 +454,8 @@ void MainWidget::valueRender(const QJsonObject& obj)
 
 void MainWidget::onIoError(const QString& msg)
 {
-    ui->pushButtonBrower->setEnabled(true);
     ui->pushButtonRun->setEnabled(true);
+    emit openFailed();
     emit message(msg);
 }
 

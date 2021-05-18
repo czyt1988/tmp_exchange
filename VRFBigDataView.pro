@@ -25,6 +25,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += \
     GPlotWidget.cpp \
+    SACustomPlot.cpp \
         main.cpp \
         MainWidget.cpp \
     GNodeInfo.cpp \
@@ -45,6 +46,7 @@ HEADERS += \
     GNodeInfo.h \
     GTemplate.h \
     GIDUTableModel.h \
+    SACustomPlot.h \
     SATable.h \
     GItemDisplayWidget.h \
     GModuleValueView.h \
@@ -65,6 +67,6 @@ FORMS += \
     GFaultWidget.ui
 
 include($$PWD/3rdparty/quazip-0.7.3/use_quazip.pri)
-
+include($$PWD/useSARibbonBar.pri)
 RESOURCES += \
     icon.qrc

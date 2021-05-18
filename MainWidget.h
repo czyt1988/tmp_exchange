@@ -36,6 +36,7 @@ public:
     GTemplate *getCurrentTemplate() const;
 
 public slots:
+    void open();
 
     /**
      * @brief 跳转到对应的索引
@@ -103,6 +104,11 @@ signals:
      * @param temp
      */
     void templateChanged(GTemplate *temp);
+
+    /**
+     * @brief 打开失败触发信号
+     */
+    void openFailed();
 
 private:
     Ui::MainWidget *ui;

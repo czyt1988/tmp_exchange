@@ -1,0 +1,127 @@
+﻿
+set(LIB_NAME SARibbonBar)
+
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+
+qt5_add_resources(QRCS resource.qrc)
+
+SET(HEADER_FILES
+    FramelessHelper.h
+    SARibbonActionsManager.h
+    SARibbonApplicationButton.h
+    SARibbonBar.h
+    SARibbonButtonGroupWidget.h
+    SARibbonCategory.h
+    SARibbonCategoryLayout.h
+    SARibbonCheckBox.h
+    SARibbonComboBox.h
+    SARibbonContextCategory.h
+    SARibbonControlButton.h
+    SARibbonCtrlContainer.h
+    SARibbonCustomizeData.h
+    SARibbonCustomizeDialog.h
+    SARibbonCustomizeWidget.h
+    SARibbonDrawHelper.h
+    SARibbonElementCreateDelegate.h
+    SARibbonElementManager.h
+    SARibbonGallery.h
+    SARibbonGalleryGroup.h
+    SARibbonGalleryItem.h
+    SARibbonGlobal.h
+    SARibbonLineEdit.h
+    SARibbonMainWindow.h
+    SARibbonMenu.h
+    SARibbonPannelItem.h
+    SARibbonPannelLayout.h
+    SARibbonPannel.h
+    SARibbonPannelOptionButton.h
+    SARibbonQuickAccessBar.h
+    SARibbonSeparatorWidget.h
+    SARibbonStackedWidget.h
+    SARibbonTabBar.h
+    SARibbonToolButton.h
+    SAWindowButtonGroup.h
+)
+
+SET(SOURCE_FILES
+    FramelessHelper.cpp
+    SARibbonActionsManager.cpp
+    SARibbonApplicationButton.cpp
+    SARibbonBar.cpp
+    SARibbonButtonGroupWidget.cpp
+    SARibbonCategory.cpp
+    SARibbonCategoryLayout.cpp
+    SARibbonCheckBox.cpp
+    SARibbonComboBox.cpp
+    SARibbonContextCategory.cpp
+    SARibbonControlButton.cpp
+    SARibbonCtrlContainer.cpp
+    SARibbonCustomizeData.cpp
+    SARibbonCustomizeDialog.cpp
+    SARibbonCustomizeWidget.cpp
+    SARibbonDrawHelper.cpp
+    SARibbonElementCreateDelegate.cpp
+    SARibbonElementManager.cpp
+    SARibbonGallery.cpp
+    SARibbonGalleryGroup.cpp
+    SARibbonGalleryItem.cpp
+    SARibbonLineEdit.cpp
+    SARibbonMainWindow.cpp
+    SARibbonMenu.cpp
+    SARibbonPannelItem.cpp
+    SARibbonPannelLayout.cpp
+    SARibbonPannel.cpp
+    SARibbonPannelOptionButton.cpp
+    SARibbonQuickAccessBar.cpp
+    SARibbonSeparatorWidget.cpp
+    SARibbonStackedWidget.cpp
+    SARibbonTabBar.cpp
+    SARibbonToolButton.cpp
+    SAWindowButtonGroup.cpp
+)
+
+add_definitions(-DSA_RIBBON_BAR_MAKE_LIB)
+
+add_library(${LIB_NAME} SHARED
+    ${QRCS}
+    ${HEADER_FILES}
+    ${SOURCE_FILES}
+    )
+
+target_link_libraries(${LIB_NAME} ${Qt5Widgets_LIBRARIES})
+
+SET_TARGET_PROPERTIES(${LIB_NAME} PROPERTIES DEBUG_POSTFIX ${CMAKE_DEBUG_POSTFIX})
+
+INSTALL(
+		TARGETS ${LIB_NAME}
+		RUNTIME DESTINATION bin
+		LIBRARY DESTINATION bin
+		ARCHIVE DESTINATION lib
+	)
+
+INSTALL(
+		FILES       ${HEADER_FILES}
+		DESTINATION include
+	)
+
+#=============Copy SARibbonBar Dll FILES to MainWindowExample Project================================
+SET(MainWindowExample_SubProject_DIR ${CMAKE_CURRENT_BINARY_DIR}/../example/MainWindowExample)	#目标目录
+
+SET(SARibbonBar_Debug_DLL_FILE 
+    ${CMAKE_CURRENT_BINARY_DIR}/Debug/${LIB_NAME}d.dll
+)
+SET(SARibbonBar_Release_DLL_FILE 
+    ${CMAKE_CURRENT_BINARY_DIR}/Release/${LIB_NAME}.dll
+)
+
+add_custom_command(TARGET ${LIB_NAME}
+    POST_BUILD
+	COMMAND ${CMAKE_COMMAND} -E 
+            make_directory "${MainWindowExample_SubProject_DIR}/$<$<CONFIG:Release>:Release>$<$<CONFIG:Debug>:Debug>/"	#因创建子项目顺序，需先创建目标目录再进行复制操作
+    COMMAND ${CMAKE_COMMAND} -E
+			copy_if_different 
+				"$<$<CONFIG:Release>:${SARibbonBar_Release_DLL_FILE}>" 
+				"$<$<CONFIG:Debug>:${SARibbonBar_Debug_DLL_FILE}>" 
+				"${MainWindowExample_SubProject_DIR}/$<$<CONFIG:Release>:Release>$<$<CONFIG:Debug>:Debug>/"
+)
