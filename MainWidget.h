@@ -59,7 +59,7 @@ private slots:
 
     void onTimeout();
 
-    void updateValue(int toSecsSinceEpoch);
+    void updateValue(int msecsSinceEpoch);
     void on_pushButtonSpeed_clicked();
 
 
@@ -68,12 +68,15 @@ private slots:
     void valueRender(const QJsonObject& obj);
     void onIoError(const QString& msg);
 
+    void on_comboBoxCanIP_currentIndexChanged(const QString& arg1);
+
 private:
     void deleteTemplates();
     void setRunMode();
     void setStopMode();
     void setNoneMode();
     void setSpeed(Speed s);
+    void updateValueBySliderValue(int value);
 
 signals:
 

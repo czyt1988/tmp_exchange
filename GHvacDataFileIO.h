@@ -60,7 +60,7 @@ private:
     bool loadSetting();
 
     //根据can ip进行groupby
-    void groupByCanIP(QList<TablePtr> tables);
+    bool groupByCanIP(QList<TablePtr> tables);
 
     //对时间进行对齐
     void unionDateTime();

@@ -241,10 +241,10 @@ void MainWidget::onTimeout()
 }
 
 
-void MainWidget::updateValue(int toSecsSinceEpoch)
+void MainWidget::updateValue(int msecsSinceEpoch)
 {
     //首先更新系统数据
-    QJsonObject json = mHvacInfo.get(toSecsSinceEpoch);
+    QJsonObject json = mHvacInfo.get(msecsSinceEpoch);
 
     valueRender(json);
 }
@@ -321,6 +321,24 @@ void MainWidget::setSpeed(MainWidget::Speed s)
 }
 
 
+void MainWidget::updateValueBySliderValue(int value)
+{
+    if ((value >= mHvacInfo.allDateTimeScale.size()) || (value < 0)) {
+        qDebug() << "value out range";
+        if (mMode == RuningMode) {
+            setStopMode();
+        }
+        return;
+    }
+    QDateTime dt = mHvacInfo.allDateTimeScale.at(value);
+
+    int msecsSinceEpoch = dt.toMSecsSinceEpoch();
+
+    ui->labelCurrentTime->setText(QStringLiteral("当前时间:%1").arg(dt.toString("yyyy-MM-dd HH:mm:ss")));
+    updateValue(msecsSinceEpoch);
+}
+
+
 void MainWidget::on_pushButtonSpeed_clicked()
 {
     if (Speed1x == mCurrentSpeed) {
@@ -335,19 +353,7 @@ void MainWidget::on_pushButtonSpeed_clicked()
 
 void MainWidget::on_horizontalSlider_valueChanged(int value)
 {
-    if ((value >= mHvacInfo.allDateTimeScale.size()) || (value < 0)) {
-        qDebug() << "value out range";
-        if (mMode == RuningMode) {
-            setStopMode();
-        }
-        return;
-    }
-    QDateTime dt = mHvacInfo.allDateTimeScale.at(value);
-
-    int secsSinceEpoch = dt.toSecsSinceEpoch();
-
-    ui->labelCurrentTime->setText(QStringLiteral("当前时间:%1").arg(dt.toString("yyyy-MM-dd HH:mm:ss")));
-    updateValue(secsSinceEpoch);
+    updateValueBySliderValue(value);
 }
 
 
@@ -451,4 +457,17 @@ void MainWidget::onIoError(const QString& msg)
     ui->pushButtonBrower->setEnabled(true);
     ui->pushButtonRun->setEnabled(true);
     emit message(msg);
+}
+
+
+/**
+ * @brief MainWidget::on_comboBoxCanIP_currentIndexChanged
+ * @param arg1
+ */
+void MainWidget::on_comboBoxCanIP_currentIndexChanged(const QString& arg1)
+{
+    Q_UNUSED(arg1);
+    int value = ui->horizontalSlider->value();
+
+    updateValueBySliderValue(value);
 }

@@ -139,7 +139,8 @@ public:
     SARowTable();
     SARowTable(int rows, int columns);
     void resize(int r, int c);
-
+    //判断是否存在field
+    bool haveFieldid(const QString& field) const;
     /**
      * @brief 填充元素
      * @param v
@@ -486,6 +487,25 @@ void SARowTable<T>::resize(int r, int c)
         row->resize(c);
     }
     m_columns = c;
+}
+
+/**
+ * @brief 判断是否存在field
+ * @param field
+ * @return
+ */
+template<typename T>
+bool SARowTable<T>::haveFieldid(const QString &field) const
+{
+    int r = rowCount();
+    Qt::CaseSensitivity cs = isCaseSensitivity() ? Qt::CaseSensitive : Qt::CaseInsensitive;
+    for (int i = 0; i < r; ++i)
+    {
+        if (row(i)->name().compare(field, cs) == 0) {
+            return true;
+        }
+    }
+    return false;
 }
 
 
@@ -955,19 +975,19 @@ QDebug operator<<(QDebug debug, const SARowTable<T>& t)
         typename SARowTable<T>::SeriesPtr r = t.row(i);
         QString name = r->getName();
         if (name.size() < maxlen) {
-            name.resize(maxlen, ' ');
+            name.resize(maxlen);
         }
-        debug.noquote() << name << ":";
+        debug.nospace() << name << ":";
         int cs = r->size();
         if (cs > 10) {
             for (int j = 0; j < 5; ++j)
             {
-                debug.noquote() << r->at(j) << ",";
+                debug.nospace() << r->at(j) << ",";
             }
-            debug.noquote() << "  ......  ";
+            debug.nospace() << "  ......  ";
             for (int j = cs-6; j < cs; ++j)
             {
-                debug.noquote() << r->at(j) << ",";
+                debug.nospace() << r->at(j) << ",";
             }
         }else{
             for (int j = 0; j < cs; ++j)

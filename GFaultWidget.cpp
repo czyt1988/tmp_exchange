@@ -140,7 +140,7 @@ int GFaultWidget::findFault(const GNodeInfo& info, GHvacDataInfo::TablePtr tp, c
                 << QStringLiteral(",序列长度为：")<< dateser->size();
         return (1);
     }
-    QDateTime d = QDateTime::fromSecsSinceEpoch(dateser->at(dcol));
+    QDateTime d = QDateTime::fromMSecsSinceEpoch(dateser->at(dcol));
 
     itemDatetime = new QStandardItem(d.toString("yyyy-MM-dd HH:mm:ss"));
     m_model->setItem(mr, 2, itemDatetime);

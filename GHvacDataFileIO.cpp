@@ -99,10 +99,10 @@ void GHvacDataFileIO::open(const QString& filepath)
                 QStringList line = csv.readCsvLine();
                 converStringListToDoubleList(line, rd);
                 if (dt1 >= 0) {
-                    rd[dt1] = formatDatetime(line[dt1]).toSecsSinceEpoch();
+                    rd[dt1] = formatDatetime(line[dt1]).toMSecsSinceEpoch();
                 }
                 if (dt2 >= 0) {
-                    rd[dt2] = formatDatetime(line[dt2]).toSecsSinceEpoch();
+                    rd[dt2] = formatDatetime(line[dt2]).toMSecsSinceEpoch();
                 }
                 table->appendColumn(rd.begin(), rd.end());
             }
@@ -118,7 +118,10 @@ void GHvacDataFileIO::open(const QString& filepath)
     }
     //开始对can ip进行聚合
     try{
-        groupByCanIP(originTables);
+        if (!groupByCanIP(originTables)) {
+            emit error(QStringLiteral("聚合canip过程发生异常"));
+            return;
+        }
     }
     catch (std::bad_alloc e) {
         qDebug() << QStringLiteral("groupby过程内存溢出");
@@ -308,7 +311,7 @@ void GHvacDataFileIO::converStringListToDoubleList(const QStringList& str, QVect
 }
 
 
-void GHvacDataFileIO::groupByCanIP(QList<TablePtr> tables)
+bool GHvacDataFileIO::groupByCanIP(QList<TablePtr> tables)
 {
     QString canipfield = mSetting.canipfield;
 
@@ -317,6 +320,10 @@ void GHvacDataFileIO::groupByCanIP(QList<TablePtr> tables)
         if (t->getName() == mSetting.tablename_system) {
             mHvacInfo.tables.append(t);
         }else if (t->getName() == mSetting.tablename_module) {
+            if (!t->haveFieldid(canipfield)) {
+                emit message(QStringLiteral("文件异常:配置信息中%1字段未能在数据表%2中查询到").arg(canipfield).arg(t->getName()));
+                return (false);
+            }
             QElapsedTimer tic;
             tic.start();
             QPair<QList<typename TableType::TablePtr>, QList<typename TableType::Type> > res = t->groupBy(canipfield);
@@ -330,6 +337,10 @@ void GHvacDataFileIO::groupByCanIP(QList<TablePtr> tables)
             }
             emit message(info+QStringLiteral(" 耗时:%1").arg(tic.elapsed()));
         }else if (t->getName() == mSetting.tablename_idu) {
+            if (!t->haveFieldid(canipfield)) {
+                emit message(QStringLiteral("文件异常:配置信息中%1字段未能在数据表%2中查询到").arg(canipfield).arg(t->getName()));
+                return (false);
+            }
             QElapsedTimer tic;
             tic.start();
             QPair<QList<typename TableType::TablePtr>, QList<typename TableType::Type> > res
@@ -347,6 +358,7 @@ void GHvacDataFileIO::groupByCanIP(QList<TablePtr> tables)
             emit message(info+info2+QStringLiteral(" 耗时:%1").arg(tic.elapsed()));
         }
     }
+    return (true);
 }
 
 
@@ -379,7 +391,7 @@ void GHvacDataFileIO::unionDateTime()
         std::sort(unionDatetime.begin(), unionDatetime.end());
         for (TableType::Type t : unionDatetime)
         {
-            mHvacInfo.allDateTimeScale.append(QDateTime::fromSecsSinceEpoch(t));
+            mHvacInfo.allDateTimeScale.append(QDateTime::fromMSecsSinceEpoch(t));
         }
     }
     message(QStringLiteral("完成时间提取，共%1个数据表，时间并集计算得到时间个数为%2个，耗时%3").arg(mHvacInfo.tables.size()).arg(unionDatetime.size()).arg(tic.elapsed()));

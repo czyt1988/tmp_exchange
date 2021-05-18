@@ -6,7 +6,7 @@
 
 QT       += core gui xml
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
-
+CONFIG += C++11
 include($$PWD/common.pri)
 TARGET = VRFBigDataView
 TEMPLATE = app
