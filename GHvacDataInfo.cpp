@@ -1,4 +1,4 @@
-#include "GHvacDataInfo.h"
+﻿#include "GHvacDataInfo.h"
 #include <QDebug>
 #include <QJsonDocument>
 GHvacDataInfo::GHvacDataInfo()
@@ -55,4 +55,58 @@ QJsonObject GHvacDataInfo::get(int toSecsSinceEpoch)
     rootobj.insert("module", moduleobj);
     rootobj.insert("idu", iduobj);
     return (rootobj);
+}
+
+
+/**
+ * @brief 获取系统表
+ * @return
+ */
+QList<GHvacDataInfo::TablePtr> GHvacDataInfo::getSystemTables() const
+{
+    QList<GHvacDataInfo::TablePtr> res;
+
+    for (TablePtr t : this->tables)
+    {
+        if (t->getName().contains("system")) {
+            res.append(t);
+        }
+    }
+    return (res);
+}
+
+
+/**
+ * @brief GHvacDataInfo::getModuleTables
+ * @return
+ */
+QList<GHvacDataInfo::TablePtr> GHvacDataInfo::getModuleTables() const
+{
+    QList<GHvacDataInfo::TablePtr> res;
+
+    for (TablePtr t : this->tables)
+    {
+        if (t->getName().contains("module")) {
+            res.append(t);
+        }
+    }
+    return (res);
+}
+
+
+/**
+ * @brief GHvacDataInfo::getIduTables
+ * @return
+ */
+QList<GHvacDataInfo::TablePtr> GHvacDataInfo::getIduTables() const
+{
+    QList<GHvacDataInfo::TablePtr> res;
+
+    for (TablePtr t : this->tables)
+    {
+        if (t->getName().contains("idu")) {
+            res.append(t);
+        }
+    }
+    return (res);
 }
