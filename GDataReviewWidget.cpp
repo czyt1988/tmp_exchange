@@ -1,5 +1,5 @@
-﻿#include "MainWidget.h"
-#include "ui_MainWidget.h"
+﻿#include "GDataReviewWidget.h"
+#include "ui_GDataReviewWidget.h"
 #include <QFile>
 #include <QDomDocument>
 #include <QDir>
@@ -9,18 +9,15 @@
 #include <QMessageBox>
 #include <QJsonDocument>
 
-MainWidget::MainWidget(QWidget *parent) :
+GDataReviewWidget::GDataReviewWidget(QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::MainWidget)
+    ui(new Ui::GDataReviewWidget)
     , mCurrentSpeed(Speed1x)
     , mMode(NoneMode)
-    , mSpeed1(":/icon/icon/1x.svg")
-    , mSpeed2(":/icon/icon/2x.svg")
-    , mSpeed3(":/icon/icon/3x.svg")
     , mCurrentTemplate(nullptr)
 {
     ui->setupUi(this);
-    connect(&mTimer, &QTimer::timeout, this, &MainWidget::onTimeout);
+    connect(&mTimer, &QTimer::timeout, this, &GDataReviewWidget::onTimeout);
 
     mModuleWidget = new GModuleValueView(this);
     ui->scrollArea->setWidget(mModuleWidget);
@@ -34,13 +31,13 @@ MainWidget::MainWidget(QWidget *parent) :
 }
 
 
-MainWidget::~MainWidget()
+GDataReviewWidget::~GDataReviewWidget()
 {
     delete ui;
 }
 
 
-void MainWidget::setTemplate(GTemplate *t)
+void GDataReviewWidget::setTemplate(GTemplate *t)
 {
     if (!t) {
         return;
@@ -60,91 +57,34 @@ void MainWidget::setTemplate(GTemplate *t)
 }
 
 
-
-GTemplate *MainWidget::getCurrentTemplate() const
+GTemplate *GDataReviewWidget::getCurrentTemplate() const
 {
     return (mCurrentTemplate);
 }
+
 
 /**
  * @brief 获取当前模式
  * @return
  */
-MainWidget::Mode MainWidget::getMode() const
+GDataReviewWidget::Mode GDataReviewWidget::getMode() const
 {
-    return mMode;
+    return (mMode);
 }
 
 
-void MainWidget::open()
+void GDataReviewWidget::startOpenReviewData()
 {
-    bool ispause = false;
-
     if (mTimer.isActive()) {
         mTimer.stop();
-        ispause = true;
     }
-    QString filepath = QFileDialog::getOpenFileName(this, QStringLiteral("选择数据文件"), "", "数据文件 (*.zip)");
-
-    if (filepath.isEmpty()) {
-        if (ispause) {
-            mTimer.start();
-        }
-        return;
-    }
-    GHvacDataFileIO *io = new GHvacDataFileIO();
-    //设置相关信息
-
-    QThread *readThread = new QThread();
-
-    io->moveToThread(readThread);
-    connect(readThread, &QThread::finished, io, &GHvacDataFileIO::deleteLater);
-    connect(readThread, &QThread::finished, io, &QThread::deleteLater);
-    //业务逻辑
-    connect(this, &MainWidget::openFile, io, &GHvacDataFileIO::open);
-    connect(io, &GHvacDataFileIO::readed, this, &MainWidget::onFileReaded);
-    connect(io, &GHvacDataFileIO::message, this, &MainWidget::message);
-    connect(io, &GHvacDataFileIO::error, this, &MainWidget::onIoError);
-    //唤起线程自杀
-    connect(io, &GHvacDataFileIO::readed, this, [readThread](GHvacDataInfo) {
-        readThread->quit();
-    });
-    connect(io, &GHvacDataFileIO::error, this, [readThread](QString) {
-        readThread->quit();
-    });
-    readThread->start();
-    emit message(QStringLiteral("正打开:%1").arg(filepath));
-    emit openFile(filepath);
-
     setNoneMode();
 }
 
 
-void MainWidget::toIndex(int i)
+void GDataReviewWidget::setData(GHvacDataInfo datainfo)
 {
-    ui->horizontalSlider->setValue(i);
-}
-
-
-
-void MainWidget::changeEvent(QEvent *e)
-{
-    QWidget::changeEvent(e);
-    switch (e->type())
-    {
-    case QEvent::LanguageChange:
-        ui->retranslateUi(this);
-        break;
-
-    default:
-        break;
-    }
-}
-
-
-void MainWidget::onFileReaded(GHvacDataInfo info)
-{
-    mHvacInfo = info;
+    mHvacInfo = datainfo;
 
     //设置进度条
     //设置module的canip
@@ -165,21 +105,33 @@ void MainWidget::onFileReaded(GHvacDataInfo info)
     ui->horizontalSlider->setSingleStep(1);
     //更新模板的canip
     if (mCurrentTemplate) {
-        mCurrentTemplate->getIduModel()->setCanIps(info.iduCanIPs);
+        mCurrentTemplate->getIduModel()->setCanIps(datainfo.iduCanIPs);
     }
-    //设置timmer
-
-    emit fileReaded(info);
 }
 
 
-void MainWidget::onIOErrRec(const QString& msg)
+void GDataReviewWidget::toIndex(int i)
 {
-    emit message(msg);
+    ui->horizontalSlider->setValue(i);
 }
 
 
-void MainWidget::onTimeout()
+void GDataReviewWidget::changeEvent(QEvent *e)
+{
+    QWidget::changeEvent(e);
+    switch (e->type())
+    {
+    case QEvent::LanguageChange:
+        ui->retranslateUi(this);
+        break;
+
+    default:
+        break;
+    }
+}
+
+
+void GDataReviewWidget::onTimeout()
 {
     int v = ui->horizontalSlider->value();
     int s = ui->horizontalSlider->singleStep();
@@ -188,7 +140,7 @@ void MainWidget::onTimeout()
 }
 
 
-void MainWidget::updateValue(int msecsSinceEpoch)
+void GDataReviewWidget::updateValue(int msecsSinceEpoch)
 {
     //首先更新系统数据
     QJsonObject json = mHvacInfo.get(msecsSinceEpoch);
@@ -197,66 +149,61 @@ void MainWidget::updateValue(int msecsSinceEpoch)
 }
 
 
-
-
-
-
-void MainWidget::setRunMode()
+void GDataReviewWidget::setRunMode()
 {
     mMode = RuningMode;
     mTimer.start();
 }
 
 
-void MainWidget::setStopMode()
+void GDataReviewWidget::setStopMode()
 {
     mMode = StoppedMode;
     mTimer.stop();
 }
 
 
-void MainWidget::setNoneMode()
+void GDataReviewWidget::setNoneMode()
 {
     mMode = NoneMode;
 }
 
 
-void MainWidget::setSpeed(MainWidget::Speed s)
+void GDataReviewWidget::setSpeed(GDataReviewWidget::Speed s)
 {
     mCurrentSpeed = s;
     switch (s)
     {
     case Speed1x:
     {
-        ui->labelspeed->setPixmap(mSpeed1.pixmap(ui->labelspeed->size()));
         mTimer.setInterval(1000);
     }
     break;
 
     case Speed2x:
     {
-        ui->labelspeed->setPixmap(mSpeed2.pixmap(ui->labelspeed->size()));
         mTimer.setInterval(500);
     }
     break;
 
     case Speed3x:
     {
-        ui->labelspeed->setPixmap(mSpeed3.pixmap(ui->labelspeed->size()));
         mTimer.setInterval(300);
     }
     break;
+
     case SpeedMax:
     {
         mTimer.setInterval(0);
     }
+
     default:
         break;
     }
 }
 
 
-void MainWidget::updateValueBySliderValue(int value)
+void GDataReviewWidget::updateValueBySliderValue(int value)
 {
     if ((value >= mHvacInfo.allDateTimeScale.size()) || (value < 0)) {
         qDebug() << "value out range";
@@ -274,7 +221,7 @@ void MainWidget::updateValueBySliderValue(int value)
 }
 
 
-void MainWidget::on_pushButtonSpeed_clicked()
+void GDataReviewWidget::on_pushButtonSpeed_clicked()
 {
     if (Speed1x == mCurrentSpeed) {
         setSpeed(Speed2x);
@@ -286,13 +233,13 @@ void MainWidget::on_pushButtonSpeed_clicked()
 }
 
 
-void MainWidget::on_horizontalSlider_valueChanged(int value)
+void GDataReviewWidget::on_horizontalSlider_valueChanged(int value)
 {
     updateValueBySliderValue(value);
 }
 
 
-void MainWidget::valueRender(const QJsonObject& obj)
+void GDataReviewWidget::valueRender(const QJsonObject& obj)
 {
     QJsonDocument doc(obj);
     QString str = QString(doc.toJson(QJsonDocument::Indented));
@@ -387,18 +334,11 @@ void MainWidget::valueRender(const QJsonObject& obj)
 }
 
 
-void MainWidget::onIoError(const QString& msg)
-{
-    emit openFailed();
-    emit message(msg);
-}
-
-
 /**
  * @brief MainWidget::on_comboBoxCanIP_currentIndexChanged
  * @param arg1
  */
-void MainWidget::on_comboBoxCanIP_currentIndexChanged(const QString& arg1)
+void GDataReviewWidget::on_comboBoxCanIP_currentIndexChanged(const QString& arg1)
 {
     Q_UNUSED(arg1);
     int value = ui->horizontalSlider->value();

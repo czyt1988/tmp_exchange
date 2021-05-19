@@ -1,4 +1,4 @@
-#include "MainWidget.h"
+#include "GDataReviewWidget.h"
 #include <QApplication>
 #include "MainWindow.h"
 int main(int argc, char *argv[])

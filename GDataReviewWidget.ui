@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>MainWidget</class>
- <widget class="QWidget" name="MainWidget">
+ <class>GDataReviewWidget</class>
+ <widget class="QWidget" name="GDataReviewWidget">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -29,23 +29,6 @@
    <property name="bottomMargin">
     <number>1</number>
    </property>
-   <item>
-    <layout class="QHBoxLayout" name="horizontalLayout">
-     <property name="spacing">
-      <number>1</number>
-     </property>
-     <item>
-      <widget class="QLabel" name="label_2">
-       <property name="text">
-        <string>           2.选择模板</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QComboBox" name="comboBoxTemplate"/>
-     </item>
-    </layout>
-   </item>
    <item>
     <widget class="QSplitter" name="splitterModuleAndIdu">
      <property name="orientation">
@@ -140,8 +123,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>443</width>
-             <height>219</height>
+             <width>446</width>
+             <height>233</height>
             </rect>
            </property>
           </widget>
@@ -206,61 +189,11 @@
        </property>
       </widget>
      </item>
-     <item>
-      <widget class="QPushButton" name="pushButtonSpeed">
-       <property name="text">
-        <string/>
-       </property>
-       <property name="icon">
-        <iconset resource="icon.qrc">
-         <normaloff>:/icon/icon/fast.svg</normaloff>:/icon/icon/fast.svg</iconset>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLabel" name="labelspeed">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>24</width>
-         <height>24</height>
-        </size>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>24</width>
-         <height>24</height>
-        </size>
-       </property>
-       <property name="sizeIncrement">
-        <size>
-         <width>0</width>
-         <height>0</height>
-        </size>
-       </property>
-       <property name="baseSize">
-        <size>
-         <width>24</width>
-         <height>24</height>
-        </size>
-       </property>
-       <property name="text">
-        <string/>
-       </property>
-      </widget>
-     </item>
     </layout>
    </item>
   </layout>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
- <resources>
-  <include location="icon.qrc"/>
- </resources>
+ <resources/>
  <connections/>
 </ui>

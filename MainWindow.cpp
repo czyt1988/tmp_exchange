@@ -1,8 +1,10 @@
 ﻿#include "MainWindow.h"
 #include "ui_MainWindow.h"
-#include "MainWidget.h"
+#include "GDataReviewWidget.h"
 #include "GTemplate.h"
 #include "GTemplateManager.h"
+#include <QFileDialog>
+#include "GHvacIOManager.h"
 const QString c_template_path = "./template";
 MainWindow::MainWindow(QWidget *parent) :
     SARibbonMainWindow(parent),
@@ -61,7 +63,7 @@ void MainWindow::init()
     ui->dockWidgetFault->setWidget(ui->dockWidgetContents_2);
     this->addDockWidget(Qt::RightDockWidgetArea, ui->dockWidgetFault);
 
-    ui->dataReviewWidget = new MainWidget();
+    ui->dataReviewWidget = new GDataReviewWidget();
     ui->tabWidget->addTab(ui->dataReviewWidget, QStringLiteral("数据回放"));
     ui->dataPlotWidget = new GPlotWidget();
     ui->tabWidget->addTab(ui->dataPlotWidget, QStringLiteral("数据绘图"));
@@ -119,15 +121,17 @@ void MainWindow::init()
 
     ui->pannelMainDataTemplate = new SARibbonPannel();
     ui->galleryDataTemplate = new SARibbonGallery(ui->pannelMainDataTemplate);
-    QList<GTemplate*> temps = GTemplateManager::getInstance()->getAllTemplates();
-    for(GTemplate* t : temps){
-        QAction* a = new QAction(this);
+    QList<GTemplate *> temps = GTemplateManager::getInstance()->getAllTemplates();
+
+    for (GTemplate *t : temps)
+    {
+        QAction *a = new QAction(this);
         a->setIcon(QIcon(":/icon/icon/template.svg"));
         a->setText(t->name());
         ui->templateActionList.append(a);
     }
-    ui->galleryDataTemplate->addCategoryActions(QStringLiteral("模板"),ui->templateActionList);
-    ui->pannelMainDataTemplate->addWidget(ui->galleryDataTemplate,SARibbonPannelItem::Large);
+    ui->galleryDataTemplate->addCategoryActions(QStringLiteral("模板"), ui->templateActionList);
+    ui->pannelMainDataTemplate->addWidget(ui->galleryDataTemplate, SARibbonPannelItem::Large);
     ui->pannelMainDataTemplate->setExpanding();
     ui->categoryMain->addPannel(ui->pannelMainDataTemplate);
     //categoryDataView
@@ -149,18 +153,19 @@ void MainWindow::init()
 
 
     //信号槽
-    connect(ui->dataReviewWidget, &MainWidget::message, this, &MainWindow::onMessage);
-    connect(ui->dataReviewWidget, &MainWidget::fileReaded, this, &MainWindow::onFileReaded);
-    connect(GTemplateManager::getInstance(), &GTemplateManager::templateChanged, this, &MainWindow::onTemplateChanged);
-    connect(ui->dataReviewWidget, &MainWidget::openFile, this, &MainWindow::onOpenFile);
-    connect(ui->dataReviewWidget, &MainWidget::openFailed, this, &MainWindow::onOpenFailed);
-    connect(ui->widgetFaule, &GFaultWidget::indexReques, ui->dataReviewWidget, &MainWidget::toIndex);
+    connect(IOManager, &GHvacIOManager::startOpenFile, this, &MainWindow::onOpenFile);
+    connect(IOManager, &GHvacIOManager::fileReaded, this, &MainWindow::onFileReaded);
+    connect(IOManager, &GHvacIOManager::message, this, &MainWindow::onMessage);
+    connect(IOManager, &GHvacIOManager::openFailed, this, &MainWindow::onOpenFailed);
+    connect(TemplateManager, &GTemplateManager::templateChanged, this, &MainWindow::onTemplateChanged);
+    connect(ui->dataReviewWidget, &GDataReviewWidget::message, this, &MainWindow::onMessage);
+    connect(ui->widgetFaule, &GFaultWidget::indexReques, ui->dataReviewWidget, &GDataReviewWidget::toIndex);
     connect(ui->actionOpen, &QAction::triggered, this, &MainWindow::onActionOpenTriggered);
     connect(ui->actionDataViewWindow, &QAction::triggered, this, &MainWindow::onActionDataViewWindowTriggered);
     connect(ui->actionFigureWindow, &QAction::triggered, this, &MainWindow::onActionFigureWindowTriggered);
     connect(ui->actionRunOrStopDataView, &QAction::triggered, this, &MainWindow::onActionRunOrStopDataViewTriggered);
-    connect(ui->actionGroupRunDataViewSpeed,&QActionGroup::triggered,this,&MainWindow::onActionGroupRunDataViewSpeedTriggered);
-    connect(ui->galleryDataTemplate,&SARibbonGallery::triggered,this,&MainWindow::onGalleryTemplateActionTriggered);
+    connect(ui->actionGroupRunDataViewSpeed, &QActionGroup::triggered, this, &MainWindow::onActionGroupRunDataViewSpeedTriggered);
+    connect(ui->galleryDataTemplate, &SARibbonGallery::triggered, this, &MainWindow::onGalleryTemplateActionTriggered);
     //文本设置
     ui->retranslateUi(this);
 }
@@ -221,13 +226,15 @@ void MainWindow::onFileReaded(GHvacDataInfo data)
 {
     ui->actionOpen->setEnabled(true);
     ui->actionRunOrStopDataView->setEnabled(true);
+    //
+    ui->dataReviewWidget->setData(data);
     //给故障窗口传递数据
     ui->widgetFaule->setData(data);
-    ui->widgetFaule->setTemplate(ui->dataReviewWidget->getCurrentTemplate());
+//    ui->widgetFaule->setTemplate(ui->dataReviewWidget->getCurrentTemplate());
     ui->widgetFaule->updateFaultInfo();
     //给绘图窗口传递数据
     ui->dataPlotWidget->setData(data);
-    ui->dataPlotWidget->setTemplate(ui->dataReviewWidget->getCurrentTemplate());
+//    ui->dataPlotWidget->setTemplate(ui->dataReviewWidget->getCurrentTemplate());
     //显示标签
     ribbonBar()->showCategory(ui->categoryDataView);
 }
@@ -255,6 +262,7 @@ void MainWindow::onActionFigureWindowTriggered()
 void MainWindow::onOpenFile(const QString& filename)
 {
     ui->statusbar->showMessage(filename);
+    ui->dataReviewWidget->startOpenReviewData();
 }
 
 
@@ -264,35 +272,39 @@ void MainWindow::onOpenFailed()
     ui->actionRunOrStopDataView->setEnabled(true);
 }
 
+
 /**
  * @brief 运行数据回放
  */
 void MainWindow::onActionRunOrStopDataViewTriggered()
 {
-    if ((ui->dataReviewWidget->getMode() == MainWidget::StoppedMode)
-            || (ui->dataReviewWidget->getMode() == MainWidget::NoneMode)) {
+    if ((ui->dataReviewWidget->getMode() == GDataReviewWidget::StoppedMode) ||
+        (ui->dataReviewWidget->getMode() == GDataReviewWidget::NoneMode)) {
         ui->dataReviewWidget->setRunMode();
         ui->actionRunOrStopDataView->setIcon(QIcon(":/icon/icon/pause.svg"));
         ui->actionRunOrStopDataView->setText(QStringLiteral("暂停"));
-    }else if (ui->dataReviewWidget->getMode() == MainWidget::RuningMode) {
+    }else if (ui->dataReviewWidget->getMode() == GDataReviewWidget::RuningMode) {
         ui->dataReviewWidget->setStopMode();
         ui->actionRunOrStopDataView->setIcon(QIcon(":/icon/icon/start.svg"));
         ui->actionRunOrStopDataView->setText(QStringLiteral("开始"));
     }
 }
 
+
 void MainWindow::onActionGroupRunDataViewSpeedTriggered(QAction *action)
 {
-    if(action == ui->actionRunDataViewSpeed1){
-        ui->dataReviewWidget->setSpeed(MainWidget::Speed1x);
-    }else if(action == ui->actionRunDataViewSpeed2){
-        ui->dataReviewWidget->setSpeed(MainWidget::Speed2x);
-    }else if(action == ui->actionRunDataViewSpeed3){
-        ui->dataReviewWidget->setSpeed(MainWidget::Speed3x);
-    }else if(action == ui->actionRunDataViewSpeedMax){
-        ui->dataReviewWidget->setSpeed(MainWidget::SpeedMax);
+    if (action == ui->actionRunDataViewSpeed1) {
+        ui->dataReviewWidget->setSpeed(GDataReviewWidget::Speed1x);
+    }else if (action == ui->actionRunDataViewSpeed2) {
+        ui->dataReviewWidget->setSpeed(GDataReviewWidget::Speed2x);
+    }else if (action == ui->actionRunDataViewSpeed3) {
+        ui->dataReviewWidget->setSpeed(GDataReviewWidget::Speed3x);
+    }else if (action == ui->actionRunDataViewSpeedMax) {
+        ui->dataReviewWidget->setSpeed(GDataReviewWidget::SpeedMax);
     }
 }
+
+
 /**
  * @brief 模板gallery点击触发
  * @param action
@@ -300,13 +312,19 @@ void MainWindow::onActionGroupRunDataViewSpeedTriggered(QAction *action)
 void MainWindow::onGalleryTemplateActionTriggered(QAction *action)
 {
     int index = ui->templateActionList.indexOf(action);
+
     GTemplateManager::getInstance()->setCurrentTemplate(index);
 }
 
 
 void MainWindow::onActionOpenTriggered()
 {
-    ui->dataReviewWidget->open();
+    QString filepath = QFileDialog::getOpenFileName(this, QStringLiteral("选择数据文件"), "", "数据文件 (*.zip)");
+
+    if (filepath.isEmpty()) {
+        return;
+    }
+    IOManager->openReviewData(filepath);
     ui->actionOpen->setDisabled(true);
     ui->actionRunOrStopDataView->setDisabled(true);
 }

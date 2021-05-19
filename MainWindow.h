@@ -7,7 +7,7 @@
 #include "GTemplate.h"
 #include "GPlotWidget.h"
 #include "SARibbonMainWindow.h"
-#include "MainWidget.h"
+#include "GDataReviewWidget.h"
 #include <GFaultWidget.h>
 #include <QtCore/QVariant>
 #include <QtWidgets/QAction>
@@ -50,6 +50,7 @@ private slots:
     void onActionRunOrStopDataViewTriggered();
     void onActionGroupRunDataViewSpeedTriggered(QAction *action);
     void onGalleryTemplateActionTriggered(QAction *action);
+
 private:
     void init();
 
@@ -64,7 +65,7 @@ public:
         QAction *actionRunDataViewSpeed2;
         QAction *actionRunDataViewSpeed3;
         QAction *actionRunDataViewSpeedMax;
-        QActionGroup* actionGroupRunDataViewSpeed;
+        QActionGroup *actionGroupRunDataViewSpeed;
         QWidget *centralwidget;
         QVBoxLayout *verticalLayout_3;
         QTabWidget *tabWidget;
@@ -77,17 +78,17 @@ public:
         QWidget *dockWidgetContents_2;
         QVBoxLayout *verticalLayout_2;
         GFaultWidget *widgetFaule;
-        MainWidget *dataReviewWidget;
+        GDataReviewWidget *dataReviewWidget;
         GPlotWidget *dataPlotWidget;
         SARibbonCategory *categoryMain;
         SARibbonCategory *categoryDataView;
         SARibbonCategory *categoryFigure;
         SARibbonPannel *pannelMainFile;
         SARibbonPannel *pannelMainWindowList;
-        SARibbonPannel* pannelMainDataTemplate;
-        SARibbonGallery* galleryDataTemplate;
+        SARibbonPannel *pannelMainDataTemplate;
+        SARibbonGallery *galleryDataTemplate;
         SARibbonPannel *dataview_opetion;
-        QList<QAction*> templateActionList;
+        QList<QAction *> templateActionList;
         void retranslateUi(MainWindow *w);
     };
     QScopedPointer<UI> ui;

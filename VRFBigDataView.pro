@@ -24,10 +24,11 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 
 SOURCES += \
+    GDataReviewWidget.cpp \
+    GHvacIOManager.cpp \
     GPlotWidget.cpp \
     SACustomPlot.cpp \
         main.cpp \
-        MainWidget.cpp \
     GNodeInfo.cpp \
     GTemplate.cpp \
     GIDUTableModel.cpp \
@@ -42,8 +43,9 @@ SOURCES += \
     GTemplateManager.cpp
 
 HEADERS += \
+    GDataReviewWidget.h \
+    GHvacIOManager.h \
     GPlotWidget.h \
-        MainWidget.h \
     GNodeInfo.h \
     GTemplate.h \
     GIDUTableModel.h \
@@ -61,8 +63,8 @@ HEADERS += \
     GTemplateManager.h
 
 FORMS += \
+    GDataReviewWidget.ui \
     GPlotWidget.ui \
-        MainWidget.ui \
     GItemDisplayWidget.ui \
     GModuleValueView.ui \
     MainWindow.ui \
