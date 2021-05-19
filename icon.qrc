@@ -13,5 +13,7 @@
         <file>icon/open.svg</file>
         <file>icon/figureWindow.svg</file>
         <file>icon/dataViewWindow.svg</file>
+        <file>icon/maxSpeed.svg</file>
+        <file>icon/template.svg</file>
     </qresource>
 </RCC>

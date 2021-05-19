@@ -20,12 +20,12 @@ public:
     explicit MainWidget(QWidget *parent = 0);
     ~MainWidget();
     void setTemplate(GTemplate *t);
-    void loadTemplate();
 
     enum Speed {
         Speed1x		= 1
         , Speed2x	= 2
         , Speed3x	= 3
+        , SpeedMax	= 4
     };
     enum Mode {
         NoneMode
@@ -34,25 +34,24 @@ public:
     };
 
     GTemplate *getCurrentTemplate() const;
-
+    //获取当前模式
+    Mode getMode() const;
+    void setRunMode();
+    void setStopMode();
+    void setSpeed(Speed s);
 public slots:
+    // 打开文件
     void open();
 
     /**
-     * @brief 跳转到对应的索引
+     * @brief 跳转到对应的索引(时间)
      * @param i
      */
     void toIndex(int i);
-
 protected:
     void changeEvent(QEvent *e);
 
 private slots:
-    void on_pushButtonBrower_clicked();
-
-    void on_pushButtonRun_clicked();
-
-    void on_comboBoxTemplate_currentIndexChanged(int index);
 
     void onFileReaded(GHvacDataInfo info);
 
@@ -72,11 +71,9 @@ private slots:
     void on_comboBoxCanIP_currentIndexChanged(const QString& arg1);
 
 private:
-    void deleteTemplates();
-    void setRunMode();
-    void setStopMode();
+
     void setNoneMode();
-    void setSpeed(Speed s);
+
     void updateValueBySliderValue(int value);
 
 signals:
@@ -100,21 +97,13 @@ signals:
     void fileReaded(GHvacDataInfo info);
 
     /**
-     * @brief 模板发生改变信号
-     * @param temp
-     */
-    void templateChanged(GTemplate *temp);
-
-    /**
      * @brief 打开失败触发信号
      */
     void openFailed();
 
 private:
     Ui::MainWidget *ui;
-    QList<GTemplate *> mTemplate;
     GHvacDataInfo mHvacInfo;
-    GTemplate *mCurrentTemplate;
     GModuleValueView *mModuleWidget;
     QTimer mTimer;
     Speed mCurrentSpeed;
@@ -122,6 +111,7 @@ private:
     QIcon mSpeed1;
     QIcon mSpeed2;
     QIcon mSpeed3;
+    GTemplate* mCurrentTemplate;
 };
 
 #endif // MAINWIDGET_H

@@ -140,8 +140,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>446</width>
-             <height>216</height>
+             <width>443</width>
+             <height>219</height>
             </rect>
            </property>
           </widget>
@@ -203,13 +203,6 @@
       <widget class="QLabel" name="labelCurrentTime">
        <property name="text">
         <string>当前时间</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="pushButtonRun">
-       <property name="text">
-        <string>开始</string>
        </property>
       </widget>
      </item>

@@ -38,7 +38,8 @@ SOURCES += \
     MainWindow.cpp \
     GHvacDataInfo.cpp \
     GFaultWidget.cpp \
-    qcustomplot.cpp
+    qcustomplot.cpp \
+    GTemplateManager.cpp
 
 HEADERS += \
     GPlotWidget.h \
@@ -56,7 +57,8 @@ HEADERS += \
     SAAlgorithm.h \
     GHvacDataInfo.h \
     GFaultWidget.h \
-    qcustomplot.h
+    qcustomplot.h \
+    GTemplateManager.h
 
 FORMS += \
     GPlotWidget.ui \

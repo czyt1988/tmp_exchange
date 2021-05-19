@@ -19,11 +19,12 @@
 #include <QtWidgets/QTextEdit>
 #include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QWidget>
+#include <QtWidgets/QActionGroup>
 #include <QScopedPointer>
 #include "SARibbonBar.h"
 #include "SARibbonCategory.h"
 #include "SARibbonPannel.h"
-
+#include "SARibbonGallery.h"
 class MainWindow : public SARibbonMainWindow
 {
     Q_OBJECT
@@ -46,7 +47,9 @@ private slots:
     void onActionFigureWindowTriggered();
     void onOpenFile(const QString& filename);
     void onOpenFailed();
-
+    void onActionRunOrStopDataViewTriggered();
+    void onActionGroupRunDataViewSpeedTriggered(QAction *action);
+    void onGalleryTemplateActionTriggered(QAction *action);
 private:
     void init();
 
@@ -56,6 +59,12 @@ public:
         QAction *actionOpen;
         QAction *actionDataViewWindow;
         QAction *actionFigureWindow;
+        QAction *actionRunOrStopDataView;
+        QAction *actionRunDataViewSpeed1;
+        QAction *actionRunDataViewSpeed2;
+        QAction *actionRunDataViewSpeed3;
+        QAction *actionRunDataViewSpeedMax;
+        QActionGroup* actionGroupRunDataViewSpeed;
         QWidget *centralwidget;
         QVBoxLayout *verticalLayout_3;
         QTabWidget *tabWidget;
@@ -73,8 +82,12 @@ public:
         SARibbonCategory *categoryMain;
         SARibbonCategory *categoryDataView;
         SARibbonCategory *categoryFigure;
-        SARibbonPannel *main_filePannel;
-        SARibbonPannel *main_WindowPannel;
+        SARibbonPannel *pannelMainFile;
+        SARibbonPannel *pannelMainWindowList;
+        SARibbonPannel* pannelMainDataTemplate;
+        SARibbonGallery* galleryDataTemplate;
+        SARibbonPannel *dataview_opetion;
+        QList<QAction*> templateActionList;
         void retranslateUi(MainWindow *w);
     };
     QScopedPointer<UI> ui;

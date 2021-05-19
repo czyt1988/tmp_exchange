@@ -17,6 +17,7 @@ MainWidget::MainWidget(QWidget *parent) :
     , mSpeed1(":/icon/icon/1x.svg")
     , mSpeed2(":/icon/icon/2x.svg")
     , mSpeed3(":/icon/icon/3x.svg")
+    , mCurrentTemplate(nullptr)
 {
     ui->setupUi(this);
     connect(&mTimer, &QTimer::timeout, this, &MainWidget::onTimeout);
@@ -29,7 +30,6 @@ MainWidget::MainWidget(QWidget *parent) :
     ui->splitterModuleAndIdu->setStretchFactor(1, 1);
     setStopMode();
     setSpeed(Speed1x);
-    loadTemplate();
     showMaximized();
 }
 
@@ -56,39 +56,23 @@ void MainWidget::setTemplate(GTemplate *t)
             mCurrentTemplate->getIduModel()->setCanIps(mHvacInfo.iduCanIPs);
         }
     }
-    emit templateChanged(mCurrentTemplate);
-
     qDebug() << QStringLiteral("设置模板成功");
 }
 
-
-void MainWidget::loadTemplate()
-{
-    deleteTemplates();
-    QDir dir("./template");
-    QStringList xmlfilelist = dir.entryList(QDir::NoDotAndDotDot|QDir::Files);
-
-    for (const QString& p : xmlfilelist)
-    {
-        qDebug() << dir.path() + QDir::separator() + p;
-        QScopedPointer<GTemplate> tp(new GTemplate(this));
-        if (tp->load(dir.path() + QDir::separator() + p)) {
-            mTemplate.append(tp.take());
-        }
-    }
-    for (GTemplate *t : mTemplate)
-    {
-        ui->comboBoxTemplate->addItem(t->name());
-    }
-    if (ui->comboBoxTemplate->count() > 0) {
-        ui->comboBoxTemplate->setCurrentIndex(0);
-    }
-}
 
 
 GTemplate *MainWidget::getCurrentTemplate() const
 {
     return (mCurrentTemplate);
+}
+
+/**
+ * @brief 获取当前模式
+ * @return
+ */
+MainWidget::Mode MainWidget::getMode() const
+{
+    return mMode;
 }
 
 
@@ -108,7 +92,6 @@ void MainWidget::open()
         }
         return;
     }
-    ui->pushButtonRun->setDisabled(true);
     GHvacDataFileIO *io = new GHvacDataFileIO();
     //设置相关信息
 
@@ -143,6 +126,7 @@ void MainWidget::toIndex(int i)
 }
 
 
+
 void MainWidget::changeEvent(QEvent *e)
 {
     QWidget::changeEvent(e);
@@ -155,39 +139,6 @@ void MainWidget::changeEvent(QEvent *e)
     default:
         break;
     }
-}
-
-
-/**
- * @brief MainWidget::on_pushButtonBrower_clicked
- */
-void MainWidget::on_pushButtonBrower_clicked()
-{
-}
-
-
-/**
- * @brief MainWidget::on_pushButtonRun_clicked
- */
-void MainWidget::on_pushButtonRun_clicked()
-{
-    if ((mMode == StoppedMode) || (mMode == NoneMode)) {
-        setRunMode();
-    }else if (mMode == RuningMode) {
-        setStopMode();
-    }
-}
-
-
-void MainWidget::on_comboBoxTemplate_currentIndexChanged(int index)
-{
-    if (index >= mTemplate.size()) {
-        qDebug() << QStringLiteral("combox索引异常");
-        return;
-    }
-    GTemplate *t = mTemplate.at(index);
-
-    setTemplate(t);
 }
 
 
@@ -204,7 +155,6 @@ void MainWidget::onFileReaded(GHvacDataInfo info)
     }
     //设置范围
     if (mHvacInfo.allDateTimeScale.size() <= 0) {
-        ui->pushButtonRun->setEnabled(true);
         QMessageBox::warning(this, QStringLiteral("警告"), QStringLiteral("无有效数据"));
         return;
     }
@@ -219,15 +169,12 @@ void MainWidget::onFileReaded(GHvacDataInfo info)
     }
     //设置timmer
 
-    ui->pushButtonRun->setEnabled(true);
-
     emit fileReaded(info);
 }
 
 
 void MainWidget::onIOErrRec(const QString& msg)
 {
-    ui->pushButtonRun->setEnabled(true);
     emit message(msg);
 }
 
@@ -250,24 +197,12 @@ void MainWidget::updateValue(int msecsSinceEpoch)
 }
 
 
-/**
- * @brief 删除所有模板
- */
-void MainWidget::deleteTemplates()
-{
-    for (auto i : mTemplate)
-    {
-        i->deleteLater();
-    }
-    mCurrentTemplate = nullptr;
-    mTemplate.clear();
-    ui->comboBoxTemplate->clear();
-}
+
+
 
 
 void MainWidget::setRunMode()
 {
-    ui->pushButtonRun->setIcon(QIcon(":/icon/icon/pause.svg"));
     mMode = RuningMode;
     mTimer.start();
 }
@@ -275,7 +210,6 @@ void MainWidget::setRunMode()
 
 void MainWidget::setStopMode()
 {
-    ui->pushButtonRun->setIcon(QIcon(":/icon/icon/start.svg"));
     mMode = StoppedMode;
     mTimer.stop();
 }
@@ -283,8 +217,6 @@ void MainWidget::setStopMode()
 
 void MainWidget::setNoneMode()
 {
-    ui->pushButtonRun->setIcon(QIcon(":/icon/icon/start.svg"));
-    ui->pushButtonRun->setDisabled(true);
     mMode = NoneMode;
 }
 
@@ -314,7 +246,10 @@ void MainWidget::setSpeed(MainWidget::Speed s)
         mTimer.setInterval(300);
     }
     break;
-
+    case SpeedMax:
+    {
+        mTimer.setInterval(0);
+    }
     default:
         break;
     }
@@ -454,7 +389,6 @@ void MainWidget::valueRender(const QJsonObject& obj)
 
 void MainWidget::onIoError(const QString& msg)
 {
-    ui->pushButtonRun->setEnabled(true);
     emit openFailed();
     emit message(msg);
 }
