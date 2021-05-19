@@ -5,13 +5,22 @@
 #include "GTemplateManager.h"
 #include <QFileDialog>
 #include "GHvacIOManager.h"
+#include "SARibbonGalleryGroup.h"
+
 const QString c_template_path = "./template";
 MainWindow::MainWindow(QWidget *parent) :
     SARibbonMainWindow(parent),
     ui(new UI)
 {
     init();
+    //默认选中第一个模板
     GTemplateManager::getInstance()->setCurrentTemplate(0);
+    SARibbonGalleryGroup *gallgroup = ui->galleryDataTemplate->currentViewGroup();
+
+    if (gallgroup) {
+        gallgroup->selectByIndex(0);
+    }
+
     ribbonBar()->setRibbonStyle(SARibbonBar::WpsLiteStyleTwoRow);
     showMaximized();
 }

@@ -5,6 +5,7 @@
 #include "GHvacDataInfo.h"
 #include "GTemplate.h"
 #include <QStandardItemModel>
+class SACustomPlot;
 namespace Ui {
 class GPlotWidget;
 }

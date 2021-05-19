@@ -58,11 +58,19 @@
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="plotContainer" native="true"/>
+     <widget class="SACustomPlot" name="figure" native="true"/>
     </widget>
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>SACustomPlot</class>
+   <extends>QWidget</extends>
+   <header>SACustomPlot.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

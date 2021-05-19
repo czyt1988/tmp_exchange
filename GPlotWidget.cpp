@@ -2,6 +2,7 @@
 #include "ui_GPlotWidget.h"
 #include "SATable.h"
 #include <QDebug>
+#include "SACustomPlot.h"
 #define ROLE_ITEM_DATA_HVACTYPE		(Qt::UserRole+1)
 #define ITEM_DATA_TYPE_System		1
 #define ITEM_DATA_TYPE_Module		2
@@ -19,6 +20,12 @@ GPlotWidget::GPlotWidget(QWidget *parent) :
     ui->splitter->setStretchFactor(1, 4);
     m_treeModel = new QStandardItemModel(this);
     ui->treeView->setModel(m_treeModel);
+    //添加一个默认绘图
+
+    QSharedPointer<QCPAxisTickerDateTime> dateTicker(new QCPAxisTickerDateTime);
+
+    dateTicker->setDateTimeFormat("yyyy-MM-dd\nHH:mm:ss");
+    ui->figure->xAxis->setTicker(dateTicker);
 }
 
 
@@ -32,6 +39,7 @@ void GPlotWidget::setData(const GHvacDataInfo& d)
 {
     m_data = d;
     resetTreeView();
+    ui->treeView->expandAll();
 }
 
 

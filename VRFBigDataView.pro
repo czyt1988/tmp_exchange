@@ -50,6 +50,7 @@ HEADERS += \
     GTemplate.h \
     GIDUTableModel.h \
     SACustomPlot.h \
+    SAGlobals.h \
     SATable.h \
     GItemDisplayWidget.h \
     GModuleValueView.h \
