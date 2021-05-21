@@ -6,7 +6,7 @@
 #include <QFileDialog>
 #include "GHvacIOManager.h"
 #include "SARibbonGalleryGroup.h"
-
+#include "SACustomPlot.h"
 const QString c_template_path = "./template";
 MainWindow::MainWindow(QWidget *parent) :
     SARibbonMainWindow(parent),
@@ -23,6 +23,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ribbonBar()->setRibbonStyle(SARibbonBar::WpsLiteStyleTwoRow);
     showMaximized();
+    ui->figureWidget->resetSplitterRatio();
 }
 
 
@@ -74,8 +75,8 @@ void MainWindow::init()
 
     ui->dataReviewWidget = new GDataReviewWidget();
     ui->tabWidget->addTab(ui->dataReviewWidget, QStringLiteral("数据回放"));
-    ui->dataPlotWidget = new GPlotWidget();
-    ui->tabWidget->addTab(ui->dataPlotWidget, QStringLiteral("数据绘图"));
+    ui->figureWidget = new GPlotWidget();
+    ui->tabWidget->addTab(ui->figureWidget, QStringLiteral("数据绘图"));
 
     //action
     ui->actionOpen = new QAction(this);
@@ -84,6 +85,14 @@ void MainWindow::init()
     ui->actionDataViewWindow = new QAction(this);
     ui->actionDataViewWindow->setObjectName(QString::fromUtf8("actionDataViewWindow"));
     ui->actionDataViewWindow->setIcon(QIcon(":/icon/icon/dataViewWindow.svg"));
+    ui->actionMessageViewWindow = new QAction(this);
+    ui->actionMessageViewWindow->setObjectName(QString::fromUtf8("actionMessageViewWindow"));
+    ui->actionMessageViewWindow->setIcon(QIcon(":/icon/icon/messageView.svg"));
+    ui->actionMessageViewWindow->setCheckable(true);
+    ui->actionFaultViewWindow = new QAction(this);
+    ui->actionFaultViewWindow->setObjectName(QString::fromUtf8("actionFaultViewWindow"));
+    ui->actionFaultViewWindow->setIcon(QIcon(":/icon/icon/faultView.svg"));
+    ui->actionFaultViewWindow->setCheckable(true);
     ui->actionFigureWindow = new QAction(this);
     ui->actionFigureWindow->setObjectName(QString::fromUtf8("actionFigureWindow"));
     ui->actionFigureWindow->setIcon(QIcon(":/icon/icon/figureWindow.svg"));
@@ -113,7 +122,18 @@ void MainWindow::init()
     ui->actionGroupRunDataViewSpeed->addAction(ui->actionRunDataViewSpeedMax);
     ui->actionGroupRunDataViewSpeed->setExclusive(true);
     ui->actionRunDataViewSpeed1->setChecked(true);
-
+    ui->actionFigureLegend = new QAction(this);
+    ui->actionFigureLegend->setObjectName(QString::fromUtf8("actionFigureLegend"));
+    ui->actionFigureLegend->setIcon(QIcon(":/icon/icon/chartLegend.svg"));
+    ui->actionFigureLegend->setCheckable(true);
+    ui->actionFigureWheelZoomable = new QAction(this);
+    ui->actionFigureWheelZoomable->setObjectName(QString::fromUtf8("actionFigureZoomable"));
+    ui->actionFigureWheelZoomable->setIcon(QIcon(":/icon/icon/chartZoom.svg"));
+    ui->actionFigureWheelZoomable->setCheckable(true);
+    ui->actionFigureRangeDrag = new QAction(this);
+    ui->actionFigureRangeDrag->setObjectName(QString::fromUtf8("actionFigureRangeDrag"));
+    ui->actionFigureRangeDrag->setIcon(QIcon(":/icon/icon/chartRangeDrag.svg"));
+    ui->actionFigureRangeDrag->setCheckable(true);
     //建立ribbon
     //categoryMain
     ui->categoryMain = new SARibbonCategory();
@@ -126,6 +146,8 @@ void MainWindow::init()
     ui->pannelMainWindowList = new SARibbonPannel();
     ui->pannelMainWindowList->addLargeAction(ui->actionDataViewWindow);
     ui->pannelMainWindowList->addLargeAction(ui->actionFigureWindow);
+    ui->pannelMainWindowList->addSmallAction(ui->actionMessageViewWindow);
+    ui->pannelMainWindowList->addSmallAction(ui->actionFaultViewWindow);
     ui->categoryMain->addPannel(ui->pannelMainWindowList);
 
     ui->pannelMainDataTemplate = new SARibbonPannel();
@@ -147,20 +169,29 @@ void MainWindow::init()
     ui->categoryDataView = new SARibbonCategory();
     ribbon->addCategoryPage(ui->categoryDataView);
 
-    ui->dataview_opetion = new SARibbonPannel();
-    ui->dataview_opetion->addLargeAction(ui->actionRunOrStopDataView);
-    ui->dataview_opetion->addSmallAction(ui->actionRunDataViewSpeed1);
-    ui->dataview_opetion->addSmallAction(ui->actionRunDataViewSpeed2);
-    ui->dataview_opetion->addSmallAction(ui->actionRunDataViewSpeed3);
-    ui->dataview_opetion->addSmallAction(ui->actionRunDataViewSpeedMax);
-    ui->categoryDataView->addPannel(ui->dataview_opetion);
+    ui->pannelDataViewOpetion = new SARibbonPannel();
+    ui->pannelDataViewOpetion->addLargeAction(ui->actionRunOrStopDataView);
+    ui->pannelDataViewOpetion->addSmallAction(ui->actionRunDataViewSpeed1);
+    ui->pannelDataViewOpetion->addSmallAction(ui->actionRunDataViewSpeed2);
+    ui->pannelDataViewOpetion->addSmallAction(ui->actionRunDataViewSpeed3);
+    ui->pannelDataViewOpetion->addSmallAction(ui->actionRunDataViewSpeedMax);
+    ui->categoryDataView->addPannel(ui->pannelDataViewOpetion);
     //categoryFigure
-    ui->categoryFigure = new SARibbonCategory();
+    ui->categoryFigure = new SARibbonCategory(this);
     ribbon->addCategoryPage(ui->categoryFigure);
-
+    ui->pannelFigureOpetion = new SARibbonPannel(this);
+    ui->pannelFigureOpetion->addLargeAction(ui->actionFigureLegend);
+    ui->pannelFigureOpetion->addLargeAction(ui->actionFigureWheelZoomable);
+    ui->pannelFigureOpetion->addLargeAction(ui->actionFigureRangeDrag);
+    ui->categoryFigure->addPannel(ui->pannelFigureOpetion);
     //组建立ribbon界面
 
-
+    //某些状态的初始化
+    ui->actionMessageViewWindow->setChecked(true);
+    ui->actionFaultViewWindow->setChecked(true);
+    ui->actionFigureLegend->setChecked(true);
+    ui->actionFigureWheelZoomable->setChecked(true);
+    ui->actionFigureRangeDrag->setChecked(true);
     //信号槽
     connect(IOManager, &GHvacIOManager::startOpenFile, this, &MainWindow::onOpenFile);
     connect(IOManager, &GHvacIOManager::fileReaded, this, &MainWindow::onFileReaded);
@@ -171,10 +202,16 @@ void MainWindow::init()
     connect(ui->widgetFaule, &GFaultWidget::indexReques, ui->dataReviewWidget, &GDataReviewWidget::toIndex);
     connect(ui->actionOpen, &QAction::triggered, this, &MainWindow::onActionOpenTriggered);
     connect(ui->actionDataViewWindow, &QAction::triggered, this, &MainWindow::onActionDataViewWindowTriggered);
+    connect(ui->actionMessageViewWindow,&QAction::triggered,this,&MainWindow::onActionMessageViewWindowTriggered);
+    connect(ui->actionFaultViewWindow,&QAction::triggered,this,&MainWindow::onActionFaultViewWindowTriggered);
     connect(ui->actionFigureWindow, &QAction::triggered, this, &MainWindow::onActionFigureWindowTriggered);
     connect(ui->actionRunOrStopDataView, &QAction::triggered, this, &MainWindow::onActionRunOrStopDataViewTriggered);
     connect(ui->actionGroupRunDataViewSpeed, &QActionGroup::triggered, this, &MainWindow::onActionGroupRunDataViewSpeedTriggered);
     connect(ui->galleryDataTemplate, &SARibbonGallery::triggered, this, &MainWindow::onGalleryTemplateActionTriggered);
+    connect(ui->tabWidget,&QTabWidget::currentChanged,this,&MainWindow::onTabWidgetCurrentChanged);
+    connect(ui->actionFigureLegend, &QAction::triggered, this, &MainWindow::onActionFigureLegendTriggered);
+    connect(ui->actionFigureWheelZoomable, &QAction::triggered, this, &MainWindow::onActionFigureWheelZoomableTriggered);
+    connect(ui->actionFigureRangeDrag, &QAction::triggered, this, &MainWindow::onActionFigureRangeDragTriggered);
     //文本设置
     ui->retranslateUi(this);
 }
@@ -192,16 +229,22 @@ void MainWindow::UI::retranslateUi(MainWindow *w)
     pannelMainFile->setPannelName(QStringLiteral("文件"));
     pannelMainWindowList->setPannelName(QStringLiteral("窗口"));
     pannelMainDataTemplate->setPannelName(QStringLiteral("数据模板"));
-    dataview_opetion->setPannelName(QStringLiteral("操作"));
+    pannelDataViewOpetion->setPannelName(QStringLiteral("回放操作"));
+    pannelFigureOpetion->setPannelName(QStringLiteral("绘图操作"));
     //action
     actionOpen->setText(QStringLiteral("打开"));
     actionDataViewWindow->setText(QStringLiteral("回放视图"));
     actionFigureWindow->setText(QStringLiteral("绘图视图"));
+    actionMessageViewWindow->setText(QStringLiteral("消息窗口"));
+    actionFaultViewWindow->setText(QStringLiteral("故障窗口"));
     actionRunOrStopDataView->setText(QStringLiteral("运行"));
     actionRunDataViewSpeed1->setText(QStringLiteral("1x播放速度"));
     actionRunDataViewSpeed2->setText(QStringLiteral("2x播放速度"));
     actionRunDataViewSpeed3->setText(QStringLiteral("3x播放速度"));
     actionRunDataViewSpeedMax->setText(QStringLiteral("最大播放速度"));
+    actionFigureLegend->setText(QStringLiteral("图例"));
+    actionFigureWheelZoomable->setText(QStringLiteral("滚轮缩放"));
+    actionFigureRangeDrag->setText(QStringLiteral("拖动"));
 }
 
 
@@ -242,7 +285,7 @@ void MainWindow::onFileReaded(GHvacDataInfo data)
 //    ui->widgetFaule->setTemplate(ui->dataReviewWidget->getCurrentTemplate());
     ui->widgetFaule->updateFaultInfo();
     //给绘图窗口传递数据
-    ui->dataPlotWidget->setData(data);
+    ui->figureWidget->setData(data);
 //    ui->dataPlotWidget->setTemplate(ui->dataReviewWidget->getCurrentTemplate());
     //显示标签
     ribbonBar()->showCategory(ui->categoryDataView);
@@ -254,13 +297,35 @@ void MainWindow::onTemplateChanged(GTemplate *temp)
     ui->dataReviewWidget->setTemplate(temp);
     ui->widgetFaule->setTemplate(temp);
     ui->widgetFaule->updateFaultInfo();
-    ui->dataPlotWidget->setTemplate(temp);
+    ui->figureWidget->setTemplate(temp);
 }
 
 
 void MainWindow::onActionFigureWindowTriggered()
 {
-    ui->tabWidget->setCurrentWidget(ui->dataPlotWidget);
+    ui->tabWidget->setCurrentWidget(ui->figureWidget);
+}
+
+void MainWindow::onActionMessageViewWindowTriggered(bool c)
+{
+    if(c)
+    {
+        ui->dockWidgetMessage->show();
+        ui->dockWidgetMessage->raise();
+    }else{
+        ui->dockWidgetMessage->hide();
+    }
+}
+
+void MainWindow::onActionFaultViewWindowTriggered(bool c)
+{
+    if(c)
+    {
+        ui->dockWidgetMessage->show();
+        ui->dockWidgetMessage->raise();
+    }else{
+        ui->dockWidgetMessage->hide();
+    }
 }
 
 
@@ -323,6 +388,49 @@ void MainWindow::onGalleryTemplateActionTriggered(QAction *action)
     int index = ui->templateActionList.indexOf(action);
 
     GTemplateManager::getInstance()->setCurrentTemplate(index);
+}
+
+/**
+ * @brief tab标签选中后，ribbon category随之跳转
+ *
+ * 前提是已经读取数据
+ * @param index
+ */
+void MainWindow::onTabWidgetCurrentChanged(int index)
+{
+    if(!IOManager->isHaveData()){
+        return;
+    }
+    if(ui->tabWidget->widget(index) == ui->dataReviewWidget){
+        ribbonBar()->showCategory(ui->categoryDataView);
+    }else if(ui->tabWidget->widget(index) == ui->figureWidget){
+        ribbonBar()->showCategory(ui->categoryFigure);
+    }
+}
+
+/**
+ * @brief 图例
+ * @param c
+ */
+void MainWindow::onActionFigureLegendTriggered(bool c)
+{
+    ui->figureWidget->figure()->showLegend(c);
+}
+/**
+ * @brief 滚轮缩放
+ * @param c
+ */
+void MainWindow::onActionFigureWheelZoomableTriggered(bool c)
+{
+    ui->figureWidget->figure()->enableWheelZoom(c);
+}
+/**
+ * @brief 拖动控制
+ * @param c
+ */
+void MainWindow::onActionFigureRangeDragTriggered(bool c)
+{
+    ui->figureWidget->figure()->enableRangeDrag(c);
 }
 
 

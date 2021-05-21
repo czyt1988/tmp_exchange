@@ -45,12 +45,17 @@ private slots:
     void onActionOpenTriggered();
     void onActionDataViewWindowTriggered();
     void onActionFigureWindowTriggered();
+    void onActionMessageViewWindowTriggered(bool c);
+    void onActionFaultViewWindowTriggered(bool c);
     void onOpenFile(const QString& filename);
     void onOpenFailed();
     void onActionRunOrStopDataViewTriggered();
     void onActionGroupRunDataViewSpeedTriggered(QAction *action);
     void onGalleryTemplateActionTriggered(QAction *action);
-
+    void onTabWidgetCurrentChanged(int index);
+    void onActionFigureLegendTriggered(bool c);
+    void onActionFigureWheelZoomableTriggered(bool c);
+    void onActionFigureRangeDragTriggered(bool c);
 private:
     void init();
 
@@ -59,12 +64,17 @@ private:
 public:
         QAction *actionOpen;
         QAction *actionDataViewWindow;
+        QAction *actionMessageViewWindow;
+        QAction *actionFaultViewWindow;
         QAction *actionFigureWindow;
         QAction *actionRunOrStopDataView;
         QAction *actionRunDataViewSpeed1;
         QAction *actionRunDataViewSpeed2;
         QAction *actionRunDataViewSpeed3;
         QAction *actionRunDataViewSpeedMax;
+        QAction *actionFigureLegend;
+        QAction *actionFigureWheelZoomable;
+        QAction *actionFigureRangeDrag;
         QActionGroup *actionGroupRunDataViewSpeed;
         QWidget *centralwidget;
         QVBoxLayout *verticalLayout_3;
@@ -79,7 +89,7 @@ public:
         QVBoxLayout *verticalLayout_2;
         GFaultWidget *widgetFaule;
         GDataReviewWidget *dataReviewWidget;
-        GPlotWidget *dataPlotWidget;
+        GPlotWidget *figureWidget;
         SARibbonCategory *categoryMain;
         SARibbonCategory *categoryDataView;
         SARibbonCategory *categoryFigure;
@@ -87,7 +97,8 @@ public:
         SARibbonPannel *pannelMainWindowList;
         SARibbonPannel *pannelMainDataTemplate;
         SARibbonGallery *galleryDataTemplate;
-        SARibbonPannel *dataview_opetion;
+        SARibbonPannel *pannelDataViewOpetion;
+        SARibbonPannel *pannelFigureOpetion;
         QList<QAction *> templateActionList;
         void retranslateUi(MainWindow *w);
     };

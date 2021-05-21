@@ -221,18 +221,6 @@ void GDataReviewWidget::updateValueBySliderValue(int value)
 }
 
 
-void GDataReviewWidget::on_pushButtonSpeed_clicked()
-{
-    if (Speed1x == mCurrentSpeed) {
-        setSpeed(Speed2x);
-    }else if (Speed2x == mCurrentSpeed) {
-        setSpeed(Speed3x);
-    }else{
-        setSpeed(Speed1x);
-    }
-}
-
-
 void GDataReviewWidget::on_horizontalSlider_valueChanged(int value)
 {
     updateValueBySliderValue(value);

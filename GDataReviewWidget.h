@@ -63,7 +63,6 @@ protected:
 private slots:
     void onTimeout();
     void updateValue(int msecsSinceEpoch);
-    void on_pushButtonSpeed_clicked();
     void valueRender(const QJsonObject& obj);
     void on_horizontalSlider_valueChanged(int value);
     void on_comboBoxCanIP_currentIndexChanged(const QString& arg1);

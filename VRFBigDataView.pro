@@ -24,11 +24,11 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 
 SOURCES += \
+    main.cpp \
     GDataReviewWidget.cpp \
     GHvacIOManager.cpp \
     GPlotWidget.cpp \
     SACustomPlot.cpp \
-        main.cpp \
     GNodeInfo.cpp \
     GTemplate.cpp \
     GIDUTableModel.cpp \
@@ -40,7 +40,9 @@ SOURCES += \
     GHvacDataInfo.cpp \
     GFaultWidget.cpp \
     qcustomplot.cpp \
-    GTemplateManager.cpp
+    GTemplateManager.cpp \
+    SAColorList.cpp \
+    SAColorMap.cpp
 
 HEADERS += \
     GDataReviewWidget.h \
@@ -61,7 +63,10 @@ HEADERS += \
     GHvacDataInfo.h \
     GFaultWidget.h \
     qcustomplot.h \
-    GTemplateManager.h
+    GTemplateManager.h \
+    SAColorAlgorithm.h \
+    SAColorList.h \
+    SAColorMap.h
 
 FORMS += \
     GDataReviewWidget.ui \

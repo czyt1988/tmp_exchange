@@ -12,6 +12,11 @@ GHvacIOManager *GHvacIOManager::getInstance()
     return (&s_io);
 }
 
+bool GHvacIOManager::isHaveData() const
+{
+    return (m_datainfo.tables.size() > 0);
+}
+
 
 /**
  * @brief 打开文件以zip为后缀的回放文件

@@ -58,7 +58,20 @@
        </item>
       </layout>
      </widget>
-     <widget class="SACustomPlot" name="figure" native="true"/>
+     <widget class="SACustomPlot" name="figure" native="true">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="minimumSize">
+       <size>
+        <width>401</width>
+        <height>200</height>
+       </size>
+      </property>
+     </widget>
     </widget>
    </item>
   </layout>

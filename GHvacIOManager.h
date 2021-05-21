@@ -14,7 +14,8 @@ private:
     GHvacIOManager(QObject *p = nullptr);
 public:
     static GHvacIOManager *getInstance();
-
+    //判断当前是否有读取数据
+    bool isHaveData() const;
 public slots:
     // 打开文件以zip为后缀的回放文件
     void openReviewData(const QString& filepath);

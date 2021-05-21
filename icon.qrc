@@ -15,5 +15,11 @@
         <file>icon/dataViewWindow.svg</file>
         <file>icon/maxSpeed.svg</file>
         <file>icon/template.svg</file>
+        <file>icon/chartRangeDrag.svg</file>
+        <file>icon/chartZoom.svg</file>
+        <file>icon/chartZoomReset.svg</file>
+        <file>icon/faultView.svg</file>
+        <file>icon/messageView.svg</file>
+        <file>icon/chartLegend.svg</file>
     </qresource>
 </RCC>
