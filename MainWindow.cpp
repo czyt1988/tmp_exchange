@@ -134,6 +134,18 @@ void MainWindow::init()
     ui->actionFigureRangeDrag->setObjectName(QString::fromUtf8("actionFigureRangeDrag"));
     ui->actionFigureRangeDrag->setIcon(QIcon(":/icon/icon/chartRangeDrag.svg"));
     ui->actionFigureRangeDrag->setCheckable(true);
+    ui->actionFigureAxesSelect = new QAction(this);
+    ui->actionFigureAxesSelect->setObjectName(QString::fromUtf8("actionFigureAxesSelect"));
+    ui->actionFigureAxesSelect->setIcon(QIcon(":/icon/icon/chartAxesSelect.svg"));
+    ui->actionFigureAxesSelect->setCheckable(true);
+    ui->actionFigureLegendSelect = new QAction(this);
+    ui->actionFigureLegendSelect->setObjectName(QString::fromUtf8("actionFigureLegendSelect"));
+    ui->actionFigureLegendSelect->setIcon(QIcon(":/icon/icon/chartLegendSelect.svg"));
+    ui->actionFigureLegendSelect->setCheckable(true);
+    ui->actionFigureRectSelectZoom = new QAction(this);
+    ui->actionFigureRectSelectZoom->setObjectName(QString::fromUtf8("actionFigureRectSelectZoom"));
+    ui->actionFigureRectSelectZoom->setIcon(QIcon(":/icon/icon/chartSelectZoom.svg"));
+    ui->actionFigureRectSelectZoom->setCheckable(true);
     //建立ribbon
     //categoryMain
     ui->categoryMain = new SARibbonCategory();
@@ -181,18 +193,25 @@ void MainWindow::init()
     ribbon->addCategoryPage(ui->categoryFigure);
     ui->pannelFigureOpetion = new SARibbonPannel(this);
     ui->pannelFigureOpetion->addLargeAction(ui->actionFigureLegend);
+    ui->pannelFigureOpetion->addLargeAction(ui->actionFigureRectSelectZoom);
     ui->pannelFigureOpetion->addLargeAction(ui->actionFigureWheelZoomable);
     ui->pannelFigureOpetion->addLargeAction(ui->actionFigureRangeDrag);
+    ui->pannelFigureOpetion->addLargeAction(ui->actionFigureAxesSelect);
+    ui->pannelFigureOpetion->addLargeAction(ui->actionFigureLegendSelect);
+
     ui->categoryFigure->addPannel(ui->pannelFigureOpetion);
     //组建立ribbon界面
 
     //某些状态的初始化
     ui->actionMessageViewWindow->setChecked(true);
     ui->actionFaultViewWindow->setChecked(true);
-    ui->actionFigureLegend->setChecked(true);
-    ui->actionFigureWheelZoomable->setChecked(true);
-    ui->actionFigureRangeDrag->setChecked(true);
-    //信号槽
+    ui->actionFigureLegend->setChecked(ui->figureWidget->figure()->isLegendVisible());
+    ui->actionFigureWheelZoomable->setChecked(ui->figureWidget->figure()->isEnableWheelZoom());
+    ui->actionFigureRangeDrag->setChecked(ui->figureWidget->figure()->isEnableRangeDrag());
+    ui->actionFigureAxesSelect->setChecked(ui->figureWidget->figure()->isEnableAxesSelect());
+    ui->actionFigureLegendSelect->setChecked(ui->figureWidget->figure()->isEnableLegendSelect());
+    ui->actionFigureRectSelectZoom->setChecked(ui->figureWidget->figure()->isEnableSelectRectZoom());
+    //初始化
     connect(IOManager, &GHvacIOManager::startOpenFile, this, &MainWindow::onOpenFile);
     connect(IOManager, &GHvacIOManager::fileReaded, this, &MainWindow::onFileReaded);
     connect(IOManager, &GHvacIOManager::message, this, &MainWindow::onMessage);
@@ -202,16 +221,19 @@ void MainWindow::init()
     connect(ui->widgetFaule, &GFaultWidget::indexReques, ui->dataReviewWidget, &GDataReviewWidget::toIndex);
     connect(ui->actionOpen, &QAction::triggered, this, &MainWindow::onActionOpenTriggered);
     connect(ui->actionDataViewWindow, &QAction::triggered, this, &MainWindow::onActionDataViewWindowTriggered);
-    connect(ui->actionMessageViewWindow,&QAction::triggered,this,&MainWindow::onActionMessageViewWindowTriggered);
-    connect(ui->actionFaultViewWindow,&QAction::triggered,this,&MainWindow::onActionFaultViewWindowTriggered);
+    connect(ui->actionMessageViewWindow, &QAction::triggered, this, &MainWindow::onActionMessageViewWindowTriggered);
+    connect(ui->actionFaultViewWindow, &QAction::triggered, this, &MainWindow::onActionFaultViewWindowTriggered);
     connect(ui->actionFigureWindow, &QAction::triggered, this, &MainWindow::onActionFigureWindowTriggered);
     connect(ui->actionRunOrStopDataView, &QAction::triggered, this, &MainWindow::onActionRunOrStopDataViewTriggered);
     connect(ui->actionGroupRunDataViewSpeed, &QActionGroup::triggered, this, &MainWindow::onActionGroupRunDataViewSpeedTriggered);
     connect(ui->galleryDataTemplate, &SARibbonGallery::triggered, this, &MainWindow::onGalleryTemplateActionTriggered);
-    connect(ui->tabWidget,&QTabWidget::currentChanged,this,&MainWindow::onTabWidgetCurrentChanged);
+    connect(ui->tabWidget, &QTabWidget::currentChanged, this, &MainWindow::onTabWidgetCurrentChanged);
     connect(ui->actionFigureLegend, &QAction::triggered, this, &MainWindow::onActionFigureLegendTriggered);
     connect(ui->actionFigureWheelZoomable, &QAction::triggered, this, &MainWindow::onActionFigureWheelZoomableTriggered);
+    connect(ui->actionFigureRectSelectZoom, &QAction::triggered, this, &MainWindow::onActionFigureRectSelectZoomTriggered);
     connect(ui->actionFigureRangeDrag, &QAction::triggered, this, &MainWindow::onActionFigureRangeDragTriggered);
+    connect(ui->actionFigureAxesSelect, &QAction::triggered, this, &MainWindow::onActionFigureAxesSelectTriggered);
+    connect(ui->actionFigureLegendSelect, &QAction::triggered, this, &MainWindow::onActionFigureLegendSelectTriggered);
     //文本设置
     ui->retranslateUi(this);
 }
@@ -244,7 +266,10 @@ void MainWindow::UI::retranslateUi(MainWindow *w)
     actionRunDataViewSpeedMax->setText(QStringLiteral("最大播放速度"));
     actionFigureLegend->setText(QStringLiteral("图例"));
     actionFigureWheelZoomable->setText(QStringLiteral("滚轮缩放"));
+    actionFigureRectSelectZoom->setText(QStringLiteral("缩放"));
     actionFigureRangeDrag->setText(QStringLiteral("拖动"));
+    actionFigureAxesSelect->setText(QStringLiteral("坐标轴拖动"));
+    actionFigureLegendSelect->setText(QStringLiteral("图例可选择"));
 }
 
 
@@ -306,10 +331,10 @@ void MainWindow::onActionFigureWindowTriggered()
     ui->tabWidget->setCurrentWidget(ui->figureWidget);
 }
 
+
 void MainWindow::onActionMessageViewWindowTriggered(bool c)
 {
-    if(c)
-    {
+    if (c) {
         ui->dockWidgetMessage->show();
         ui->dockWidgetMessage->raise();
     }else{
@@ -317,10 +342,10 @@ void MainWindow::onActionMessageViewWindowTriggered(bool c)
     }
 }
 
+
 void MainWindow::onActionFaultViewWindowTriggered(bool c)
 {
-    if(c)
-    {
+    if (c) {
         ui->dockWidgetMessage->show();
         ui->dockWidgetMessage->raise();
     }else{
@@ -390,6 +415,7 @@ void MainWindow::onGalleryTemplateActionTriggered(QAction *action)
     GTemplateManager::getInstance()->setCurrentTemplate(index);
 }
 
+
 /**
  * @brief tab标签选中后，ribbon category随之跳转
  *
@@ -398,15 +424,16 @@ void MainWindow::onGalleryTemplateActionTriggered(QAction *action)
  */
 void MainWindow::onTabWidgetCurrentChanged(int index)
 {
-    if(!IOManager->isHaveData()){
+    if (!IOManager->isHaveData()) {
         return;
     }
-    if(ui->tabWidget->widget(index) == ui->dataReviewWidget){
+    if (ui->tabWidget->widget(index) == ui->dataReviewWidget) {
         ribbonBar()->showCategory(ui->categoryDataView);
-    }else if(ui->tabWidget->widget(index) == ui->figureWidget){
+    }else if (ui->tabWidget->widget(index) == ui->figureWidget) {
         ribbonBar()->showCategory(ui->categoryFigure);
     }
 }
+
 
 /**
  * @brief 图例
@@ -416,6 +443,8 @@ void MainWindow::onActionFigureLegendTriggered(bool c)
 {
     ui->figureWidget->figure()->showLegend(c);
 }
+
+
 /**
  * @brief 滚轮缩放
  * @param c
@@ -424,6 +453,24 @@ void MainWindow::onActionFigureWheelZoomableTriggered(bool c)
 {
     ui->figureWidget->figure()->enableWheelZoom(c);
 }
+
+
+/**
+ * @brief 选框缩放
+ * @param c
+ */
+void MainWindow::onActionFigureRectSelectZoomTriggered(bool c)
+{
+    //选框缩放和拖动不能共存
+    ui->figureWidget->figure()->enableSelectRectZoom(c);
+    if (ui->figureWidget->figure()->isEnableRangeDrag()) {
+        //选框和拖动不能共存
+        ui->figureWidget->figure()->enableRangeDrag(false);
+        ui->actionFigureRangeDrag->setChecked(false);
+    }
+}
+
+
 /**
  * @brief 拖动控制
  * @param c
@@ -431,6 +478,31 @@ void MainWindow::onActionFigureWheelZoomableTriggered(bool c)
 void MainWindow::onActionFigureRangeDragTriggered(bool c)
 {
     ui->figureWidget->figure()->enableRangeDrag(c);
+    if (ui->figureWidget->figure()->isEnableSelectRectZoom()) {
+        //选框和拖动不能共存
+        ui->figureWidget->figure()->enableSelectRectZoom(false);
+        ui->actionFigureRectSelectZoom->setChecked(false);
+    }
+}
+
+
+/**
+ * @brief 允许坐标轴可选
+ * @param c
+ */
+void MainWindow::onActionFigureAxesSelectTriggered(bool c)
+{
+    ui->figureWidget->figure()->enableAxesSelect(c);
+}
+
+
+/**
+ * @brief 允许Legend可选
+ * @param c
+ */
+void MainWindow::onActionFigureLegendSelectTriggered(bool c)
+{
+    ui->figureWidget->figure()->enableLegendSelect(c);
 }
 
 

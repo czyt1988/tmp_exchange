@@ -24,6 +24,8 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 
 SOURCES += \
+    SACustomPlotAbstractValueTracer.cpp \
+    SACustomPlotYValueTracer.cpp \
     main.cpp \
     GDataReviewWidget.cpp \
     GHvacIOManager.cpp \
@@ -52,6 +54,8 @@ HEADERS += \
     GTemplate.h \
     GIDUTableModel.h \
     SACustomPlot.h \
+    SACustomPlotAbstractValueTracer.h \
+    SACustomPlotYValueTracer.h \
     SAGlobals.h \
     SATable.h \
     GItemDisplayWidget.h \

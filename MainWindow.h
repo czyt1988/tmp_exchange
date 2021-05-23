@@ -25,6 +25,7 @@
 #include "SARibbonCategory.h"
 #include "SARibbonPannel.h"
 #include "SARibbonGallery.h"
+#include <functional>
 class MainWindow : public SARibbonMainWindow
 {
     Q_OBJECT
@@ -55,7 +56,11 @@ private slots:
     void onTabWidgetCurrentChanged(int index);
     void onActionFigureLegendTriggered(bool c);
     void onActionFigureWheelZoomableTriggered(bool c);
+    void onActionFigureRectSelectZoomTriggered(bool c);
     void onActionFigureRangeDragTriggered(bool c);
+    void onActionFigureAxesSelectTriggered(bool c);
+    void onActionFigureLegendSelectTriggered(bool c);
+
 private:
     void init();
 
@@ -74,7 +79,10 @@ public:
         QAction *actionRunDataViewSpeedMax;
         QAction *actionFigureLegend;
         QAction *actionFigureWheelZoomable;
+        QAction *actionFigureRectSelectZoom;
         QAction *actionFigureRangeDrag;
+        QAction *actionFigureAxesSelect;
+        QAction *actionFigureLegendSelect;
         QActionGroup *actionGroupRunDataViewSpeed;
         QWidget *centralwidget;
         QVBoxLayout *verticalLayout_3;
@@ -101,6 +109,17 @@ public:
         SARibbonPannel *pannelFigureOpetion;
         QList<QAction *> templateActionList;
         void retranslateUi(MainWindow *w);
+
+//        void createAction(QAction* act
+//                          ,const QString& objName
+//                          ,const QString& text
+//                          ,const QIcon& icon
+//                          ,std::function<void(bool)>
+//                          ,bool isCheackable
+//                          ,bool isChecked
+//                          ,SARibbonPannel* pannel
+//                          ,SARibbonPannelItem::RowProportion rp = SARibbonPannelItem::Large
+//                          );
     };
     QScopedPointer<UI> ui;
 };

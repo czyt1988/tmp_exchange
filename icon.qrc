@@ -21,5 +21,8 @@
         <file>icon/faultView.svg</file>
         <file>icon/messageView.svg</file>
         <file>icon/chartLegend.svg</file>
+        <file>icon/chartAxesSelect.svg</file>
+        <file>icon/chartLegendSelect.svg</file>
+        <file>icon/chartSelectZoom.svg</file>
     </qresource>
 </RCC>
