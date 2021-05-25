@@ -24,5 +24,6 @@
         <file>icon/chartAxesSelect.svg</file>
         <file>icon/chartLegendSelect.svg</file>
         <file>icon/chartSelectZoom.svg</file>
+        <file>icon/chartYTracer.svg</file>
     </qresource>
 </RCC>

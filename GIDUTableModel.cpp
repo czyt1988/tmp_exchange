@@ -96,6 +96,7 @@ void GIDUTableModel::updateValue(const QList<GNodeInfo>& value)
     for (int i = 0; i < s; ++i)
     {
         mTable[r][i] = value[i].mDisplayValue;
+        qDebug()<<"["<<r<<","<<i<<"]:" << value[i].mDisplayValue;
     }
     endResetModel();
 }

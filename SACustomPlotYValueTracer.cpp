@@ -1,11 +1,27 @@
 ﻿#include "SACustomPlotYValueTracer.h"
 #include <QPair>
+#include <QDebug>
 
-SACustomPlotYValueTracer::_TracerItem::_TracerItem(SACustomPlotYValueTracer *par)
+SACustomPlotYValueTracer::_TracerItem::_TracerItem(SACustomPlotYValueTracer *par, QCPGraph* g)
     : m_par(par)
+    ,m_graph(g)
+    ,m_tracer(nullptr)
+    ,m_label(nullptr)
+    ,m_lineV(nullptr)
+    ,m_linkLine(nullptr)
 {
-    QCustomPlot *fig = par->figure();
+    create();
+}
 
+
+SACustomPlotYValueTracer::_TracerItem::~_TracerItem()
+{
+    destory();
+}
+
+void SACustomPlotYValueTracer::_TracerItem::create()
+{
+    QCustomPlot *fig = m_par->figure();
     m_tracer = new QCPItemTracer(fig);
     m_label = new QCPItemText(fig);
     m_lineV = new QCPItemStraightLine(fig);
@@ -15,12 +31,16 @@ SACustomPlotYValueTracer::_TracerItem::_TracerItem(SACustomPlotYValueTracer *par
     m_tracer->setStyle(QCPItemTracer::tsCircle);
     m_tracer->setPen(QColor(Qt::red));
     m_tracer->setBrush(QColor(Qt::red));
+    m_tracer->setSize(5);
+    m_tracer->position->setTypeX(QCPItemPosition::ptPlotCoords);
+    m_tracer->position->setTypeY(QCPItemPosition::ptPlotCoords);
     //设置文本
     m_label->setClipToAxisRect(false);
     m_label->setPadding(QMargins(3, 3, 3, 3));
     m_label->setBrush(Qt::NoBrush);
     m_label->setPen(QColor(Qt::black));
-    m_label->position->setParentAnchor(m_tracer->position);
+    //这时label的坐标相对于m_tracer
+    //m_label->position->setParentAnchor(m_tracer->position);
     //设置垂直线
     m_lineV->setPen(QColor(Qt::black));
     m_lineV->setClipToAxisRect(true);
@@ -33,8 +53,7 @@ SACustomPlotYValueTracer::_TracerItem::_TracerItem(SACustomPlotYValueTracer *par
     setLayer("overlay");
 }
 
-
-SACustomPlotYValueTracer::_TracerItem::~_TracerItem()
+void SACustomPlotYValueTracer::_TracerItem::destory()
 {
     QCustomPlot *fig = m_par->figure();
 
@@ -52,6 +71,21 @@ SACustomPlotYValueTracer::_TracerItem::~_TracerItem()
             fig->removeItem(m_linkLine);
         }
     }
+}
+
+const QCPGraph *SACustomPlotYValueTracer::_TracerItem::graph() const
+{
+    return m_graph;
+}
+
+QCPGraph *SACustomPlotYValueTracer::_TracerItem::graph()
+{
+    return m_graph;
+}
+
+bool SACustomPlotYValueTracer::_TracerItem::isValid() const
+{
+    return (m_tracer != nullptr);
 }
 
 
@@ -91,6 +125,53 @@ bool SACustomPlotYValueTracer::_TracerItem::setLayer(const QString& layerName)
     return (ok);
 }
 
+void SACustomPlotYValueTracer::_TracerItem::setTracerSize(double s)
+{
+    if (m_tracer) {
+        m_tracer->setSize(s);
+    }
+}
+
+int SACustomPlotYValueTracer::_TracerItem::getTracerSize() const
+{
+    if (m_tracer) {
+        return m_tracer->size();
+    }
+    return -1;
+}
+
+void SACustomPlotYValueTracer::_TracerItem::setTracerPos(const QPointF &p)
+{
+    m_tracer->position->setCoords(p.x(), p.y());
+}
+
+void SACustomPlotYValueTracer::_TracerItem::setTracerPen(const QColor &clr)
+{
+    if(m_tracer->pen().color() == clr){
+        return;
+    }
+    m_tracer->setPen(clr);
+}
+
+void SACustomPlotYValueTracer::_TracerItem::setTracerBrush(const QColor &clr)
+{
+    if(m_tracer->brush().color() == clr){
+        return;
+    }
+    m_tracer->setBrush(clr);
+}
+
+
+//////////////////////////////////////////////////////////
+
+//
+bool SACustomPlotYValueTracer::_TracerItemDrawData::operator <(const SACustomPlotYValueTracer::_TracerItemDrawData &other) const
+{
+    //从大到小排序
+    return (this->mPlotCoords.y() > other.mPlotCoords.y());
+}
+/////////////////////////////////////////////////////////
+
 
 SACustomPlotYValueTracer::SACustomPlotYValueTracer(QCustomPlot *fig)
     : SACustomPlotAbstractValueTracer(fig)
@@ -110,7 +191,7 @@ void SACustomPlotYValueTracer::setVisible(bool on)
 {
     for (auto& it : m_graphToTracerItem)
     {
-        it.setVisible(on);
+        it->setVisible(on);
     }
     m_isVisible = on;
     //从隐藏到显示，先更新一下最后状态的
@@ -152,21 +233,47 @@ void SACustomPlotYValueTracer::updateByPixelPosition(int x, int y)
     }
     //迭代
     //找出所有要标记的点
-    QList<QPair<QCPGraph *, QPointF> > gsandvalues;//一次性获取所有的实际点
-
+    QList<_TracerItemDrawData> drawData;//一次性获取所有的实际点
     for (int i = 0; i < gssize; ++i)
     {
+        //查找item
         QCPGraph *g = gs[i];
-        double x_val = g->keyAxis()->pixelToCoord(x);
-        auto iter = g->data()->findBegin(x_val);
-        if (iter == g->data()->end()) {
+        QSharedPointer<_TracerItem> item(nullptr);
+        auto ite = m_graphToTracerItem.find(g);
+        if(ite == m_graphToTracerItem.end()){
+            if(g->visible()){
+                //如果graph是可见的，且map里没有，就创建一个
+                item = QSharedPointer<_TracerItem>::create(this,g);
+                item->setVisible(true);
+                m_graphToTracerItem[g] = item;
+            }else{
+                //这个一定要有
+                continue;
+            }
+        }else{
+            item = m_graphToTracerItem[g];
+        }
+        if(!g->visible()){
+            //不显示的就忽略
+            item->setVisible(false);
             continue;
         }
-        double y_val = iter->mainValue();
-        gsandvalues.append(qMakePair(g, QPointF(x_val, y_val)));
+
+        item->setTracerPen(g->pen().color());
+        item->setTracerBrush(g->pen().color());
+
+        double x_val = g->keyAxis()->pixelToCoord(x);
+        auto iterpoint = g->data()->findBegin(x_val);
+        if (iterpoint == g->data()->end()) {
+            continue;
+        }
+        _TracerItemDrawData d;
+        d.mItem = item;
+        d.mPlotCoords = QPointF(iterpoint->mainKey(), iterpoint->mainValue());
+        drawData.append(d);
     }
     //绘制
-    draw(gsandvalues);
+    draw(x,y,drawData);
 }
 
 
@@ -175,23 +282,41 @@ void SACustomPlotYValueTracer::updateByPixelPosition(int x, int y)
  * @param layerName
  * @return
  */
-bool SACustomPlotYValueTracer::setLayer(const QString& layerName)
+void SACustomPlotYValueTracer::setLayer(const QString& layerName)
 {
     for (auto& it : m_graphToTracerItem)
     {
-        it.setLayer(layerName);
+        it->setLayer(layerName);
     }
 }
 
 
-void SACustomPlotYValueTracer::draw(QList<QPair<QCPGraph *, QPointF> >& datas)
+void SACustomPlotYValueTracer::draw(int x, int y, QList<_TracerItemDrawData> datas)
 {
-    for (QPair<QCPGraph *, QPointF>& info : datas)
+    //从小到大排序
+    std::sort(datas.begin(),datas.end());
+    //先绘制捕获的点
+    const int size = datas.size();
+    for (int i=0;i<size;++i)
     {
-        QCPGraph *graph = info.first;
-        if (info.second.y() > graph->valueAxis()->range().upper) {
-            info.second.ry() = graph->valueAxis()->range().upper;
+        QSharedPointer<_TracerItem> item = datas[i].mItem;
+        QPointF pos = datas[i].mPlotCoords;
+        if(nullptr == item || !(item->isValid())){
+            continue;
         }
-//        m_tracer->position->setCoords(xValue, 1);
+        double upperval = item->graph()->valueAxis()->range().upper;
+        if (pos.y() > upperval) {
+            pos.ry() = upperval;
+        }
+
+        item->setTracerPos(pos);
+    }
+    //m_label->setPositionAlignment(Qt::AlignTop | Qt::AlignHCenter);
+    //逐个生成文本框
+    for (int i=0;i<size;++i)
+    {
+
     }
 }
+
+

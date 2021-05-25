@@ -178,7 +178,7 @@ void GTemplate::loadSystemInfo(QDomElement& root)
         QDomElement e = cl.at(i).toElement();
         if (e.tagName() == "group") {
             QString gname = e.attribute("name");
-            qDebug() << gname;
+//            qDebug() << gname;
             QStandardItem *gi = new QStandardItem(gname);
             QDomNodeList nodes = e.childNodes();
             for (int j = 0; j < nodes.size(); ++j)
@@ -214,7 +214,7 @@ bool GTemplate::loadSystemItemFromNode(QDomElement& nodeitem, QStandardItem *par
     QStandardItem *vi = new QStandardItem(ni.mDisplayValue);
     QStandardItem *ui = new QStandardItem(ni.mSuffix);
 
-    qDebug() << ni;
+//    qDebug() << ni;
     if (parItem) {
         int r = parItem->rowCount();
         parItem->setChild(r, 0, gi);

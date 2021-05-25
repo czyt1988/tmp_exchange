@@ -60,7 +60,7 @@ private slots:
     void onActionFigureRangeDragTriggered(bool c);
     void onActionFigureAxesSelectTriggered(bool c);
     void onActionFigureLegendSelectTriggered(bool c);
-
+    void onActionFigureInstallYTracerTriggered(bool c);
 private:
     void init();
 
@@ -83,6 +83,7 @@ public:
         QAction *actionFigureRangeDrag;
         QAction *actionFigureAxesSelect;
         QAction *actionFigureLegendSelect;
+        QAction *actionFigureInstallYTracer;
         QActionGroup *actionGroupRunDataViewSpeed;
         QWidget *centralwidget;
         QVBoxLayout *verticalLayout_3;

@@ -55,8 +55,12 @@ public:
     void setAxisSelectedWheelZoomLimit(bool c = true);
     bool isAxisSelectedWheelZoomLimit() const;
 
+    //安装Y轴数值捕获器
+    bool installYValueTracer();
+    bool isInstallYValueTracer() const;
+    void uninstallYValueTracer();
 protected:
-    virtual void mouseMoveEvent(QMouseEvent *e);
+    virtual void mouseMoveEvent(QMouseEvent *e) Q_DECL_OVERRIDE;
 
 private slots:
     void onMousePress();

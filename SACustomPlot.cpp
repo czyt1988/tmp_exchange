@@ -1,5 +1,6 @@
 ﻿#include "SACustomPlot.h"
 #include <QMouseEvent>
+#include "SACustomPlotYValueTracer.h"
 
 class SACustomPlotPrivate {
     friend class SACustomPlot;
@@ -9,6 +10,7 @@ public:
     SACustomPlot *q_ptr;
     bool mIsAxisSelectedDragLimit;
     bool mIsAxisSelectedWheelZoomLimit;
+    QSharedPointer<SACustomPlotYValueTracer> mYValTracer;
 };
 
 SACustomPlotPrivate::SACustomPlotPrivate(SACustomPlot *p) : q_ptr(p)
@@ -230,6 +232,30 @@ bool SACustomPlot::isAxisSelectedWheelZoomLimit() const
     return (d_ptr->mIsAxisSelectedWheelZoomLimit);
 }
 
+/**
+ * @brief 安装y轴数值捕获器
+ * @return
+ */
+bool SACustomPlot::installYValueTracer()
+{
+    d_ptr->mYValTracer = QSharedPointer<SACustomPlotYValueTracer>::create(this);
+}
+/**
+ * @brief 判断y轴数值捕获器是否安装
+ * @return
+ */
+bool SACustomPlot::isInstallYValueTracer() const
+{
+    return (d_ptr->mYValTracer != nullptr);
+}
+/**
+ * @brief 卸载y轴数值捕获器
+ */
+void SACustomPlot::uninstallYValueTracer()
+{
+    d_ptr->mYValTracer.reset();
+}
+
 
 /**
  * @brief 在设置了点捕获的情况下，需要通过鼠标移动事件来监听捕获的点
@@ -238,6 +264,10 @@ bool SACustomPlot::isAxisSelectedWheelZoomLimit() const
 void SACustomPlot::mouseMoveEvent(QMouseEvent *e)
 {
     QCustomPlot::mouseMoveEvent(e);
+    if(isInstallYValueTracer()){
+        d_ptr->mYValTracer->updateByPixelPosition(e->x(),e->y());
+        replot(QCustomPlot::rpQueuedReplot);
+    }
 }
 
 

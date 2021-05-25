@@ -12,11 +12,10 @@ MainWindow::MainWindow(QWidget *parent) :
     SARibbonMainWindow(parent),
     ui(new UI)
 {
-    init();
     //默认选中第一个模板
+    init();
     GTemplateManager::getInstance()->setCurrentTemplate(0);
     SARibbonGalleryGroup *gallgroup = ui->galleryDataTemplate->currentViewGroup();
-
     if (gallgroup) {
         gallgroup->selectByIndex(0);
     }
@@ -146,6 +145,10 @@ void MainWindow::init()
     ui->actionFigureRectSelectZoom->setObjectName(QString::fromUtf8("actionFigureRectSelectZoom"));
     ui->actionFigureRectSelectZoom->setIcon(QIcon(":/icon/icon/chartSelectZoom.svg"));
     ui->actionFigureRectSelectZoom->setCheckable(true);
+    ui->actionFigureInstallYTracer = new QAction(this);
+    ui->actionFigureInstallYTracer->setObjectName(QString::fromUtf8("actionFigureInstallYTracer"));
+    ui->actionFigureInstallYTracer->setIcon(QIcon(":/icon/icon/chartYTracer.svg"));
+    ui->actionFigureInstallYTracer->setCheckable(true);
     //建立ribbon
     //categoryMain
     ui->categoryMain = new SARibbonCategory();
@@ -198,7 +201,7 @@ void MainWindow::init()
     ui->pannelFigureOpetion->addLargeAction(ui->actionFigureRangeDrag);
     ui->pannelFigureOpetion->addLargeAction(ui->actionFigureAxesSelect);
     ui->pannelFigureOpetion->addLargeAction(ui->actionFigureLegendSelect);
-
+    ui->pannelFigureOpetion->addLargeAction(ui->actionFigureInstallYTracer);
     ui->categoryFigure->addPannel(ui->pannelFigureOpetion);
     //组建立ribbon界面
 
@@ -211,6 +214,7 @@ void MainWindow::init()
     ui->actionFigureAxesSelect->setChecked(ui->figureWidget->figure()->isEnableAxesSelect());
     ui->actionFigureLegendSelect->setChecked(ui->figureWidget->figure()->isEnableLegendSelect());
     ui->actionFigureRectSelectZoom->setChecked(ui->figureWidget->figure()->isEnableSelectRectZoom());
+    ui->actionFigureInstallYTracer->setChecked(ui->figureWidget->figure()->isInstallYValueTracer());
     //初始化
     connect(IOManager, &GHvacIOManager::startOpenFile, this, &MainWindow::onOpenFile);
     connect(IOManager, &GHvacIOManager::fileReaded, this, &MainWindow::onFileReaded);
@@ -234,6 +238,7 @@ void MainWindow::init()
     connect(ui->actionFigureRangeDrag, &QAction::triggered, this, &MainWindow::onActionFigureRangeDragTriggered);
     connect(ui->actionFigureAxesSelect, &QAction::triggered, this, &MainWindow::onActionFigureAxesSelectTriggered);
     connect(ui->actionFigureLegendSelect, &QAction::triggered, this, &MainWindow::onActionFigureLegendSelectTriggered);
+    connect(ui->actionFigureInstallYTracer, &QAction::triggered, this, &MainWindow::onActionFigureInstallYTracerTriggered);
     //文本设置
     ui->retranslateUi(this);
 }
@@ -270,6 +275,7 @@ void MainWindow::UI::retranslateUi(MainWindow *w)
     actionFigureRangeDrag->setText(QStringLiteral("拖动"));
     actionFigureAxesSelect->setText(QStringLiteral("坐标轴拖动"));
     actionFigureLegendSelect->setText(QStringLiteral("图例可选择"));
+    actionFigureInstallYTracer->setText(QStringLiteral("y值跟踪"));
 }
 
 
@@ -503,6 +509,19 @@ void MainWindow::onActionFigureAxesSelectTriggered(bool c)
 void MainWindow::onActionFigureLegendSelectTriggered(bool c)
 {
     ui->figureWidget->figure()->enableLegendSelect(c);
+}
+
+/**
+ * @brief 是否对y值进行捕获
+ * @param c
+ */
+void MainWindow::onActionFigureInstallYTracerTriggered(bool c)
+{
+    if(c){
+        ui->figureWidget->figure()->installYValueTracer();
+    }else{
+        ui->figureWidget->figure()->uninstallYValueTracer();
+    }
 }
 
 

@@ -9,6 +9,48 @@
  */
 class SACustomPlotYValueTracer : public SACustomPlotAbstractValueTracer
 {
+    class _TracerItem {
+    public:
+        _TracerItem(SACustomPlotYValueTracer *par,QCPGraph* g);
+        ~_TracerItem();
+        void create();
+        SACustomPlotYValueTracer *m_par;
+        QCPGraph * m_graph;
+        QCPItemTracer* m_tracer;        // 跟踪的点
+        QCPItemText* m_label;           //显示内容
+        QCPItemStraightLine* m_lineV;   //垂直线
+        QCPItemLine* m_linkLine;        //箭头
+        //一次，此函数配合create调用
+        void destory();
+        //关联的图
+        const QCPGraph* graph() const;
+        QCPGraph* graph();
+        //判断是否有效
+        bool isValid() const;
+
+        //显示控制
+        void setVisible(bool on);
+
+        //设置图层，默认图层在overlay，所有元素设置成功返回true
+        bool setLayer(const QString& layerName);
+
+        //设置tracker的大小
+        void setTracerSize(double s);
+        int getTracerSize() const;
+        //绘制
+        void setTracerPos(const QPointF& p);
+        //
+        void setTracerPen(const QColor& clr);
+        void setTracerBrush(const QColor& clr);
+    };
+
+    class _TracerItemDrawData{
+    public:
+        QSharedPointer<_TracerItem> mItem;
+        QPointF mPlotCoords;
+        //通过y值排序
+        bool operator <(const _TracerItemDrawData& other) const;
+    };
 public:
     SACustomPlotYValueTracer(QCustomPlot *fig);
     ~SACustomPlotYValueTracer();
@@ -21,28 +63,13 @@ public:
     virtual void updateByPixelPosition(int x, int y);
 
     //设置图层，默认图层在overlay，所有元素设置成功返回true
-    bool setLayer(const QString& layerName);
+    void setLayer(const QString& layerName);
 
 protected:
-    void draw(QList<QPair<QCPGraph *, QPointF> >& datas);
+    void draw(int x, int y,QList<_TracerItemDrawData> datas);
 
 private:
-    class _TracerItem {
-public:
-        _TracerItem(SACustomPlotYValueTracer *par);
-        ~_TracerItem();
-        QCPItemTracer *m_tracer;        // 跟踪的点
-        QCPItemText *m_label;           //显示内容
-        QCPItemStraightLine *m_lineV;   //垂直线
-        QCPItemLine *m_linkLine;        //箭头
-        SACustomPlotYValueTracer *m_par;
-        //显示控制
-        void setVisible(bool on);
-
-        //设置图层，默认图层在overlay，所有元素设置成功返回true
-        bool setLayer(const QString& layerName);
-    };
-    QMap<QCPGraph *, _TracerItem> m_graphToTracerItem;
+    QMap<QCPGraph *, QSharedPointer<_TracerItem> > m_graphToTracerItem;
     bool m_isVisible;
     int m_lastX;
     int m_lastY;

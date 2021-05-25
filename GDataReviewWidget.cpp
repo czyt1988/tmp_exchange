@@ -229,8 +229,8 @@ void GDataReviewWidget::on_horizontalSlider_valueChanged(int value)
 
 void GDataReviewWidget::valueRender(const QJsonObject& obj)
 {
-    QJsonDocument doc(obj);
-    QString str = QString(doc.toJson(QJsonDocument::Indented));
+//    QJsonDocument doc(obj);
+//    QString str = QString(doc.toJson(QJsonDocument::Indented));
 
 //    QFile f("./VRFBigDataView.json");
 

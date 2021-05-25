@@ -16,7 +16,7 @@ void GHvacDataInfo::clear()
 }
 
 
-QJsonObject GHvacDataInfo::get(int toSecsSinceEpoch)
+QJsonObject GHvacDataInfo::get(int msecsSinceEpoch)
 {
     QJsonObject sysobj;
     QJsonObject moduleobj;
@@ -24,7 +24,7 @@ QJsonObject GHvacDataInfo::get(int toSecsSinceEpoch)
 
     for (TablePtr t : tables)
     {
-        QPair<TableType::Type, int> f = t->lowerBound(toSecsSinceEpoch, fieldOfDatetime);
+        QPair<TableType::Type, int> f = t->lowerBound(msecsSinceEpoch, fieldOfDatetime);
         SeriesPtr column = t->colunm(f.second);
         QStringList header = t->rowNames();
         int size = std::min(column->size(), header.size());
