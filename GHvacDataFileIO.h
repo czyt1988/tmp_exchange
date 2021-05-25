@@ -29,6 +29,9 @@ public:
     void setFileName(const QString& filepath);
     Error getError() const;
 
+public:
+    static bool toCsv(TablePtr table, QIODevice *io);
+
 public slots:
     void open(const QString& filepath);
 

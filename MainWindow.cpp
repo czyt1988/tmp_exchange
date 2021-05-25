@@ -14,15 +14,17 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     //默认选中第一个模板
     init();
-    GTemplateManager::getInstance()->setCurrentTemplate(0);
-    SARibbonGalleryGroup *gallgroup = ui->galleryDataTemplate->currentViewGroup();
-    if (gallgroup) {
-        gallgroup->selectByIndex(0);
-    }
+    if (GTemplateManager::getInstance()->getTemplateCount() > 0) {
+        GTemplateManager::getInstance()->setCurrentTemplate(0);
+        SARibbonGalleryGroup *gallgroup = ui->galleryDataTemplate->currentViewGroup();
 
+        if (gallgroup) {
+            gallgroup->selectByIndex(0);
+        }
+    }
     ribbonBar()->setRibbonStyle(SARibbonBar::WpsLiteStyleTwoRow);
     showMaximized();
-    ui->figureWidget->resetSplitterRatio();
+    //ui->figureWidget->resetSplitterRatio();
 }
 
 
@@ -149,6 +151,7 @@ void MainWindow::init()
     ui->actionFigureInstallYTracer->setObjectName(QString::fromUtf8("actionFigureInstallYTracer"));
     ui->actionFigureInstallYTracer->setIcon(QIcon(":/icon/icon/chartYTracer.svg"));
     ui->actionFigureInstallYTracer->setCheckable(true);
+
     //建立ribbon
     //categoryMain
     ui->categoryMain = new SARibbonCategory();
@@ -204,6 +207,7 @@ void MainWindow::init()
     ui->pannelFigureOpetion->addLargeAction(ui->actionFigureInstallYTracer);
     ui->categoryFigure->addPannel(ui->pannelFigureOpetion);
     //组建立ribbon界面
+
 
     //某些状态的初始化
     ui->actionMessageViewWindow->setChecked(true);
@@ -511,13 +515,14 @@ void MainWindow::onActionFigureLegendSelectTriggered(bool c)
     ui->figureWidget->figure()->enableLegendSelect(c);
 }
 
+
 /**
  * @brief 是否对y值进行捕获
  * @param c
  */
 void MainWindow::onActionFigureInstallYTracerTriggered(bool c)
 {
-    if(c){
+    if (c) {
         ui->figureWidget->figure()->installYValueTracer();
     }else{
         ui->figureWidget->figure()->uninstallYValueTracer();

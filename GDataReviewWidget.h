@@ -62,7 +62,7 @@ protected:
 
 private slots:
     void onTimeout();
-    void updateValue(int msecsSinceEpoch);
+    void updateValue(qint64 msecsSinceEpoch);
     void valueRender(const QJsonObject& obj);
     void on_horizontalSlider_valueChanged(int value);
     void on_comboBoxCanIP_currentIndexChanged(const QString& arg1);

@@ -86,7 +86,7 @@ void GHvacDataFileIO::open(const QString& filepath)
             int dt1 = header.indexOf(mSetting.datetimefield);
             int dt2 = header.indexOf(QStringLiteral("接收时间"));
             table->setRowNames(header);
-            qDebug() << QStringLiteral("数据文件:") << f << QStringLiteral(" 数据头:") << header;
+            qDebug() << QStringLiteral("数据文件:") << f << QStringLiteral(" \n数据头:") << header;
             QVector<double> rd;
             //预先分配好内存，避免溢出
             QString msg = QStringLiteral("%1表预估内存:%2 MB").arg(toTableName(f)).arg(double(linecount*header.size()*sizeof(NumType))/1024.0/1024.0);
@@ -116,6 +116,13 @@ void GHvacDataFileIO::open(const QString& filepath)
             return;
         }
     }
+    for (TablePtr t : originTables)
+    {
+        TableType::SeriesPtr s = t->row(QStringLiteral("室内环境温度"));
+        if (s) {
+            qDebug() << t->getName() << "  " << *s;
+        }
+    }
     //开始对can ip进行聚合
     try{
         if (!groupByCanIP(originTables)) {
@@ -127,6 +134,14 @@ void GHvacDataFileIO::open(const QString& filepath)
         qDebug() << QStringLiteral("groupby过程内存溢出");
         emit error(QStringLiteral("groupby过程内存溢出，数据文件过大，请裁剪"));
         return;
+    }
+
+    for (TablePtr t : mHvacInfo.tables)
+    {
+        TableType::SeriesPtr s = t->row(QStringLiteral("室内环境温度"));
+        if (s) {
+            qDebug() << t->getName() << "  " << *s;
+        }
     }
 
     try{
@@ -145,6 +160,17 @@ void GHvacDataFileIO::open(const QString& filepath)
         qDebug() << QStringLiteral("按时间排序过程内存溢出");
         emit error(QStringLiteral("按时间排序过程内存溢出，数据文件过大，请裁剪"));
         return;
+    }
+    for (TablePtr t : mHvacInfo.tables)
+    {
+        qDebug() << *t;
+    }
+    for (TablePtr t : mHvacInfo.tables)
+    {
+        QFile f(QStringLiteral("%1.csv").arg(t->getName()));
+        if (f.open(QIODevice::ReadWrite)) {
+            toCsv(t, &f);
+        }
     }
     qDebug() << filepath << QStringLiteral("完成解析");
     emit readed(mHvacInfo);
@@ -282,6 +308,36 @@ GHvacDataFileIO::Error GHvacDataFileIO::getError() const
         break;
     }
     return (UnknowError);
+}
+
+
+/**
+ * @brief 把数据转换为csv
+ * @param table
+ * @param io
+ * @return
+ */
+bool GHvacDataFileIO::toCsv(GHvacDataFileIO::TablePtr table, QIODevice *io)
+{
+    if (!io->isOpen()) {
+        return (false);
+    }
+    QTextStream txt(io);
+    SACsvStream csv(&txt);
+
+    csv << table->rowNames();
+    const int cols = table->columnCount();
+    const int rows = table->rowCount();
+
+    for (int i = 0; i < cols; ++i)
+    {
+        for (int j = 0; j < rows; ++j)
+        {
+            csv<<(table->at(j, i));
+        }
+        csv.newLine();
+    }
+    return (true);
 }
 
 

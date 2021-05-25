@@ -139,8 +139,10 @@ public:
     SARowTable();
     SARowTable(int rows, int columns);
     void resize(int r, int c);
+
     //判断是否存在field
     bool haveFieldid(const QString& field) const;
+
     /**
      * @brief 填充元素
      * @param v
@@ -379,7 +381,7 @@ bool operator <(const ValueWithIndex<T>& a, const ValueWithIndex<T>& b)
  * @return 用于带序号的排序用
  */
 template<typename T>
-std::shared_ptr<SAVector<ValueWithIndex<T> > > makeIndexSeries(typename SARowTable<T>::SeriesPtr p)
+std::shared_ptr<SAVector<ValueWithIndex<T> > > makeIndexSeries(const typename SARowTable<T>::SeriesPtr& p)
 {
     std::shared_ptr<SAVector<ValueWithIndex<T> > > res = std::make_shared<SAVector<ValueWithIndex<T> > >();
 
@@ -400,26 +402,27 @@ void orderBy(SARowTable<T>& table, const QString& field)
 {
     const int r = table.nameToIndex(field);
 
-    typename SARowTable<T>::SeriesPtr row = table.row(r);
-    Q_ASSERT_X(row != nullptr, "orderBy", "unknow field");
+    orderBy(table, r);
+//    typename SARowTable<T>::SeriesPtr row = table.row(r);
+//    Q_ASSERT_X(row != nullptr, "orderBy", "unknow field");
 
-    auto ordser = makeIndexSeries<T>(row);
+//    auto ordser = makeIndexSeries<T>(row);
 
-    std::sort(ordser->begin(), ordser->end());
-    int rowcount = table.rowCount();
+//    std::sort(ordser->begin(), ordser->end());
+//    int rowcount = table.rowCount();
 
-    //开始逐一转换
-    for (int rc = 0; rc < rowcount; ++rc)
-    {
-        typename SARowTable<T>::SeriesPtr series = table.row(rc);
-        typename SARowTable<T>::SeriesPtr ns = SARowTable<T>::makeSeries(series->getName());
-        ns->reserve(series->size());
-        for (auto i = ordser->begin(); i != ordser->end(); ++i)
-        {
-            ns->push_back(series->at((*i).index));
-        }
-        series.swap(ns);
-    }
+//    //开始逐一转换
+//    for (int rc = 0; rc < rowcount; ++rc)
+//    {
+//        typename SARowTable<T>::SeriesPtr series = table.row(rc);
+//        typename SARowTable<T>::SeriesPtr ns = SARowTable<T>::makeSeries(series->getName());
+//        ns->reserve(series->size());
+//        for (auto i = ordser->begin(); i != ordser->end(); ++i)
+//        {
+//            ns->push_back(series->at((*i).index));
+//        }
+//        table[rc].swap(ns);
+//    }
 }
 
 
@@ -443,7 +446,7 @@ void orderBy(SARowTable<T>& table, int r)
         {
             ns->push_back(series->at((*i).index));
         }
-        series.swap(ns);
+        table.row(rc).swap(ns);
     }
 }
 }
@@ -489,23 +492,25 @@ void SARowTable<T>::resize(int r, int c)
     m_columns = c;
 }
 
+
 /**
  * @brief 判断是否存在field
  * @param field
  * @return
  */
 template<typename T>
-bool SARowTable<T>::haveFieldid(const QString &field) const
+bool SARowTable<T>::haveFieldid(const QString& field) const
 {
     int r = rowCount();
     Qt::CaseSensitivity cs = isCaseSensitivity() ? Qt::CaseSensitive : Qt::CaseInsensitive;
+
     for (int i = 0; i < r; ++i)
     {
         if (row(i)->name().compare(field, cs) == 0) {
-            return true;
+            return (true);
         }
     }
-    return false;
+    return (false);
 }
 
 
@@ -853,7 +858,7 @@ QStringList SARowTable<T>::rowNames() const
 template<typename T>
 void SARowTable<T>::setRowNames(const QStringList& ns)
 {
-    int s = ns.size();
+    const int s = ns.size();
 
     for (int i = 0; i < s; ++i)
     {
@@ -957,6 +962,53 @@ bool SARowTable<T>::isCaseSensitivity() const
 }
 
 
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 4, 0))
+template<typename T>
+QDebug operator<<(QDebug debug, const SARowTable<T>& t)
+{
+    QDebugStateSaver saver(debug);
+    int rs = t.rowCount();
+    QStringList rns = t.rowNames();
+    int maxlen = 0;
+
+    for (const QString& r : rns)
+    {
+        maxlen = qMax(maxlen, r.size());
+    }
+
+    for (int i = 0; i < rs; ++i)
+    {
+        typename SARowTable<T>::SeriesPtr r = t.row(i);
+        QString name = r->getName();
+        if (name.size() < maxlen) {
+            name.resize(maxlen);
+        }
+        debug.noquote() << name << ":";
+        int cs = r->size();
+        if (cs > 10) {
+            for (int j = 0; j < 5; ++j)
+            {
+                debug.noquote() << r->at(j) << ",";
+            }
+            debug.noquote() << "  ......  ";
+            for (int j = cs-6; j < cs; ++j)
+            {
+                debug.noquote() << r->at(j) << ",";
+            }
+        }else{
+            for (int j = 0; j < cs; ++j)
+            {
+                debug << r->at(j) << ",";
+            }
+        }
+        debug << "\n";
+    }
+
+    return (debug);
+}
+
+
+#else
 template<typename T>
 QDebug operator<<(QDebug debug, const SARowTable<T>& t)
 {
@@ -1001,5 +1053,7 @@ QDebug operator<<(QDebug debug, const SARowTable<T>& t)
     return (debug);
 }
 
+
+#endif
 
 #endif // SATABLE_H

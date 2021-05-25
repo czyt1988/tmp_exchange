@@ -28,6 +28,7 @@ public:
     SACsvStream& operator <<(int d);
     SACsvStream& operator <<(double d);
     SACsvStream& operator <<(float d);
+    SACsvStream& operator <<(const QStringList& sl);
 
     //另起一行
     void newLine();

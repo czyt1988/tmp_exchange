@@ -46,6 +46,7 @@ void GDataReviewWidget::setTemplate(GTemplate *t)
     ui->treeViewSystem->setModel(t->getSystemModel());
     ui->treeViewSystem->expandAll();
     ui->tableViewIdu->setModel(t->getIduModel());
+    mModuleWidget->clear();
     mModuleWidget->setNodeInfos(t->getModuleInfoList());
     setWindowTitle(QStringLiteral("数据回放 - 模板：%1").arg(t->name()));
     if (mCurrentTemplate) {
@@ -140,7 +141,7 @@ void GDataReviewWidget::onTimeout()
 }
 
 
-void GDataReviewWidget::updateValue(int msecsSinceEpoch)
+void GDataReviewWidget::updateValue(qint64 msecsSinceEpoch)
 {
     //首先更新系统数据
     QJsonObject json = mHvacInfo.get(msecsSinceEpoch);
@@ -206,7 +207,7 @@ void GDataReviewWidget::setSpeed(GDataReviewWidget::Speed s)
 void GDataReviewWidget::updateValueBySliderValue(int value)
 {
     if ((value >= mHvacInfo.allDateTimeScale.size()) || (value < 0)) {
-        qDebug() << "value out range";
+        qDebug() << "value out range,value is " << value << ",max is"<<mHvacInfo.allDateTimeScale.size();
         if (mMode == RuningMode) {
             setStopMode();
         }
@@ -214,7 +215,7 @@ void GDataReviewWidget::updateValueBySliderValue(int value)
     }
     QDateTime dt = mHvacInfo.allDateTimeScale.at(value);
 
-    int msecsSinceEpoch = dt.toMSecsSinceEpoch();
+    qint64 msecsSinceEpoch = dt.toMSecsSinceEpoch();
 
     ui->labelCurrentTime->setText(QStringLiteral("当前时间:%1").arg(dt.toString("yyyy-MM-dd HH:mm:ss")));
     updateValue(msecsSinceEpoch);
@@ -229,15 +230,15 @@ void GDataReviewWidget::on_horizontalSlider_valueChanged(int value)
 
 void GDataReviewWidget::valueRender(const QJsonObject& obj)
 {
-//    QJsonDocument doc(obj);
-//    QString str = QString(doc.toJson(QJsonDocument::Indented));
+    QJsonDocument doc(obj);
+    QString str = QString(doc.toJson(QJsonDocument::Indented));
 
-//    QFile f("./VRFBigDataView.json");
+    QFile f("./VRFBigDataView.json");
 
-//    if (f.open(QIODevice::ReadWrite|QIODevice::Append)) {
-//        QTextStream s(&f);
-//        s << str;
-//    }
+    if (f.open(QIODevice::ReadWrite)) {
+        QTextStream s(&f);
+        s << str;
+    }
 
 
     if (mCurrentTemplate == nullptr) {
@@ -289,19 +290,19 @@ void GDataReviewWidget::valueRender(const QJsonObject& obj)
 
     //渲染内机
 
-    QJsonObject::const_iterator i = obj.find("idu");
+    QJsonObject::const_iterator iduite = obj.find("idu");
 
-    if (i == obj.constEnd()) {
+    if (iduite == obj.constEnd()) {
         qDebug() << QStringLiteral("无法找到idu");
         return;
     }
     QList<GNodeInfo> idunodes = mCurrentTemplate->getIduModel()->getNodeInfo();
-    QJsonObject iduobj = (*i).toObject();
+    QJsonObject iduobj = (*iduite).toObject();
 
     for (int canip : mHvacInfo.iduCanIPs)
     {
         QString kname = QString("idu_%1").arg(canip);
-        i = iduobj.find(kname);
+        QJsonObject::const_iterator i = iduobj.find(kname);
         if (i == iduobj.constEnd()) {
             qDebug() << QStringLiteral("无法找到canip:")<<canip<<QStringLiteral("的内容");
             continue;
@@ -316,6 +317,9 @@ void GDataReviewWidget::valueRender(const QJsonObject& obj)
                 continue;
             }
             n.mDisplayValue = (*i).toString();
+            if ((canip == 36) && (n.mName == QStringLiteral("室内环境温度"))) {
+                qDebug() << n.mName << n.mDisplayValue <<(*i).toString();
+            }
         }
         mCurrentTemplate->getIduModel()->updateValue(idunodes);
     }
