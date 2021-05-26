@@ -317,9 +317,6 @@ void GDataReviewWidget::valueRender(const QJsonObject& obj)
                 continue;
             }
             n.mDisplayValue = (*i).toString();
-            if ((canip == 36) && (n.mName == QStringLiteral("室内环境温度"))) {
-                qDebug() << n.mName << n.mDisplayValue <<(*i).toString();
-            }
         }
         mCurrentTemplate->getIduModel()->updateValue(idunodes);
     }

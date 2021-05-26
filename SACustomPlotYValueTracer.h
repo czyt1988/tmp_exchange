@@ -18,7 +18,7 @@ class SACustomPlotYValueTracer : public SACustomPlotAbstractValueTracer
         QCPGraph * m_graph;
         QCPItemTracer* m_tracer;        // 跟踪的点
         QCPItemText* m_label;           //显示内容
-        QCPItemStraightLine* m_lineV;   //垂直线
+//        QCPItemStraightLine* m_lineV;   //垂直线
         QCPItemLine* m_linkLine;        //箭头
         //一次，此函数配合create调用
         void destory();
@@ -39,9 +39,13 @@ class SACustomPlotYValueTracer : public SACustomPlotAbstractValueTracer
         int getTracerSize() const;
         //绘制
         void setTracerPos(const QPointF& p);
+        void setLabelPos(const QPointF& p);
+        void setLabelText(const QString& str);
         //
         void setTracerPen(const QColor& clr);
         void setTracerBrush(const QColor& clr);
+        //按照graph更新tracer的颜色
+        void updateColor();
     };
 
     class _TracerItemDrawData{

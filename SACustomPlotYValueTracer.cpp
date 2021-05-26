@@ -7,7 +7,7 @@ SACustomPlotYValueTracer::_TracerItem::_TracerItem(SACustomPlotYValueTracer *par
     ,m_graph(g)
     ,m_tracer(nullptr)
     ,m_label(nullptr)
-    ,m_lineV(nullptr)
+//    ,m_lineV(nullptr)
     ,m_linkLine(nullptr)
 {
     create();
@@ -24,7 +24,7 @@ void SACustomPlotYValueTracer::_TracerItem::create()
     QCustomPlot *fig = m_par->figure();
     m_tracer = new QCPItemTracer(fig);
     m_label = new QCPItemText(fig);
-    m_lineV = new QCPItemStraightLine(fig);
+//    m_lineV = new QCPItemStraightLine(fig);
     m_linkLine = new QCPItemLine(fig);
 
     //默认设置
@@ -36,20 +36,29 @@ void SACustomPlotYValueTracer::_TracerItem::create()
     m_tracer->position->setTypeY(QCPItemPosition::ptPlotCoords);
     //设置文本
     m_label->setClipToAxisRect(false);
-    m_label->setPadding(QMargins(3, 3, 3, 3));
-    m_label->setBrush(Qt::NoBrush);
-    m_label->setPen(QColor(Qt::black));
+    m_label->setPadding(QMargins(15, 5, 5, 5));
+    m_label->setBrush(QColor(21,21,21,100));
+    m_label->setColor(QColor(Qt::white));
+    m_label->setPositionAlignment(Qt::AlignVCenter|Qt::AlignLeft);
+//    m_label->position->setTypeX(QCPItemPosition::ptPlotCoords);
+//    m_label->position->setTypeY(QCPItemPosition::ptPlotCoords);
     //这时label的坐标相对于m_tracer
-    //m_label->position->setParentAnchor(m_tracer->position);
+    m_label->position->setParentAnchor(m_tracer->position);
+    m_label->position->setCoords(30,-20);
     //设置垂直线
-    m_lineV->setPen(QColor(Qt::black));
-    m_lineV->setClipToAxisRect(true);
-    m_lineV->point1->setCoords(0, 0);
-    m_lineV->point2->setCoords(0, 0);
+//    m_lineV->setPen(QColor(Qt::black));
+//    m_lineV->setClipToAxisRect(true);
+//    m_lineV->point1->setCoords(0, 0);
+//    m_lineV->point2->setCoords(0, 0);
     //
     m_linkLine->setPen(QColor(Qt::black));
     m_linkLine->setClipToAxisRect(false);
-    m_linkLine->setHead(QCPLineEnding::esNone);
+    m_linkLine->setHead(QCPLineEnding::esSpikeArrow);
+    m_linkLine->setTail(QCPLineEnding::esDiamond);
+    m_linkLine->end->setParentAnchor(m_tracer->position);
+    m_linkLine->end->setCoords(0, 0);
+    m_linkLine->start->setParentAnchor(m_label->position);
+    m_linkLine->start->setCoords(0, 0);//偏移量
     setLayer("overlay");
 }
 
@@ -64,9 +73,9 @@ void SACustomPlotYValueTracer::_TracerItem::destory()
         if (m_label) {
             fig->removeItem(m_label);
         }
-        if (m_lineV) {
-            fig->removeItem(m_lineV);
-        }
+//        if (m_lineV) {
+//            fig->removeItem(m_lineV);
+//        }
         if (m_linkLine) {
             fig->removeItem(m_linkLine);
         }
@@ -97,9 +106,9 @@ void SACustomPlotYValueTracer::_TracerItem::setVisible(bool on)
     if (m_label) {
         m_label->setVisible(on);
     }
-    if (m_lineV) {
-        m_lineV->setVisible(on);
-    }
+//    if (m_lineV) {
+//        m_lineV->setVisible(on);
+//    }
     if (m_linkLine) {
         m_linkLine->setVisible(on);
     }
@@ -116,9 +125,9 @@ bool SACustomPlotYValueTracer::_TracerItem::setLayer(const QString& layerName)
     if (m_label) {
         ok &= (m_label->setLayer(layerName));
     }
-    if (m_lineV) {
-        ok &= (m_lineV->setLayer(layerName));
-    }
+//    if (m_lineV) {
+//        ok &= (m_lineV->setLayer(layerName));
+//    }
     if (m_linkLine) {
         ok &= (m_linkLine->setLayer(layerName));
     }
@@ -145,6 +154,16 @@ void SACustomPlotYValueTracer::_TracerItem::setTracerPos(const QPointF &p)
     m_tracer->position->setCoords(p.x(), p.y());
 }
 
+void SACustomPlotYValueTracer::_TracerItem::setLabelPos(const QPointF &p)
+{
+    m_label->position->setCoords(p.x(), p.y());
+}
+
+void SACustomPlotYValueTracer::_TracerItem::setLabelText(const QString &str)
+{
+    m_label->setText(str);
+}
+
 void SACustomPlotYValueTracer::_TracerItem::setTracerPen(const QColor &clr)
 {
     if(m_tracer->pen().color() == clr){
@@ -159,6 +178,18 @@ void SACustomPlotYValueTracer::_TracerItem::setTracerBrush(const QColor &clr)
         return;
     }
     m_tracer->setBrush(clr);
+}
+
+void SACustomPlotYValueTracer::_TracerItem::updateColor()
+{
+    QCPGraph* g = graph();
+    if(nullptr == g){
+        return;
+    }
+    QColor c = g->pen().color();
+    setTracerPen(c);
+    setTracerBrush(c);
+    m_linkLine->setPen(QPen(c,1,Qt::DashLine));
 }
 
 
@@ -259,9 +290,8 @@ void SACustomPlotYValueTracer::updateByPixelPosition(int x, int y)
             continue;
         }
 
-        item->setTracerPen(g->pen().color());
-        item->setTracerBrush(g->pen().color());
 
+        item->updateColor();
         double x_val = g->keyAxis()->pixelToCoord(x);
         auto iterpoint = g->data()->findBegin(x_val);
         if (iterpoint == g->data()->end()) {
@@ -304,18 +334,15 @@ void SACustomPlotYValueTracer::draw(int x, int y, QList<_TracerItemDrawData> dat
         if(nullptr == item || !(item->isValid())){
             continue;
         }
-        double upperval = item->graph()->valueAxis()->range().upper;
-        if (pos.y() > upperval) {
-            pos.ry() = upperval;
-        }
-
         item->setTracerPos(pos);
     }
     //m_label->setPositionAlignment(Qt::AlignTop | Qt::AlignHCenter);
     //逐个生成文本框
     for (int i=0;i<size;++i)
     {
-
+        QSharedPointer<_TracerItem> item = datas[i].mItem;
+        QPointF pos = datas[i].mPlotCoords;
+        item->setLabelText(QStringLiteral("%1:%2").arg(item->graph()->name()).arg(pos.y()));
     }
 }
 

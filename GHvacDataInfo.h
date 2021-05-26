@@ -22,7 +22,7 @@ public:
 public:
     GHvacDataInfo();
     void clear();
-    QJsonObject get(int msecsSinceEpoch);
+    QJsonObject get(qint64 msecsSinceEpoch);
 
     //获取系统表
     QList<TablePtr> getSystemTables() const;

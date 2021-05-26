@@ -116,13 +116,8 @@ void GHvacDataFileIO::open(const QString& filepath)
             return;
         }
     }
-    for (TablePtr t : originTables)
-    {
-        TableType::SeriesPtr s = t->row(QStringLiteral("室内环境温度"));
-        if (s) {
-            qDebug() << t->getName() << "  " << *s;
-        }
-    }
+
+
     //开始对can ip进行聚合
     try{
         if (!groupByCanIP(originTables)) {
@@ -136,13 +131,6 @@ void GHvacDataFileIO::open(const QString& filepath)
         return;
     }
 
-    for (TablePtr t : mHvacInfo.tables)
-    {
-        TableType::SeriesPtr s = t->row(QStringLiteral("室内环境温度"));
-        if (s) {
-            qDebug() << t->getName() << "  " << *s;
-        }
-    }
 
     try{
         unionDateTime();
@@ -161,17 +149,17 @@ void GHvacDataFileIO::open(const QString& filepath)
         emit error(QStringLiteral("按时间排序过程内存溢出，数据文件过大，请裁剪"));
         return;
     }
-    for (TablePtr t : mHvacInfo.tables)
-    {
-        qDebug() << *t;
-    }
-    for (TablePtr t : mHvacInfo.tables)
-    {
-        QFile f(QStringLiteral("%1.csv").arg(t->getName()));
-        if (f.open(QIODevice::ReadWrite)) {
-            toCsv(t, &f);
-        }
-    }
+//    for (TablePtr t : mHvacInfo.tables)
+//    {
+//        qDebug() << *t;
+//    }
+//    for (TablePtr t : mHvacInfo.tables)
+//    {
+//        QFile f(QStringLiteral("%1.csv").arg(t->getName()));
+//        if (f.open(QIODevice::ReadWrite)) {
+//            toCsv(t, &f);
+//        }
+//    }
     qDebug() << filepath << QStringLiteral("完成解析");
     emit readed(mHvacInfo);
 }
@@ -326,6 +314,7 @@ bool GHvacDataFileIO::toCsv(GHvacDataFileIO::TablePtr table, QIODevice *io)
     SACsvStream csv(&txt);
 
     csv << table->rowNames();
+    csv.newLine();
     const int cols = table->columnCount();
     const int rows = table->rowCount();
 
