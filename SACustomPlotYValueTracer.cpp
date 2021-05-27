@@ -302,6 +302,7 @@ void SACustomPlotYValueTracer::updateByPixelPosition(int x, int y)
         d.mPlotCoords = QPointF(iterpoint->mainKey(), iterpoint->mainValue());
         drawData.append(d);
     }
+    //删除不在QCPGraph
     //绘制
     draw(x,y,drawData);
 }

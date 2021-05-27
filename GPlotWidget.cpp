@@ -17,11 +17,12 @@
 GPlotWidget::GPlotWidget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::GPlotWidget),
-    mTemplate(nullptr)
+    m_template(nullptr)
 {
     ui->setupUi(this);
 
     m_treeModel = new QStandardItemModel(this);
+    m_searchModel = new QStandardItemModel(this);
     ui->treeView->setModel(m_treeModel);
     //添加一个默认绘图
     resetSplitterRatio();
@@ -58,7 +59,7 @@ void GPlotWidget::setData(const GHvacDataInfo& d)
 
 void GPlotWidget::setTemplate(GTemplate *temp)
 {
-    mTemplate = temp;
+    m_template = temp;
     resetTreeView();
 }
 
@@ -77,7 +78,7 @@ SACustomPlot *GPlotWidget::figure()
 
 void GPlotWidget::resetTreeView()
 {
-    if (!mTemplate) {
+    if (!m_template) {
         return;
     }
     m_treeModel->clear();
@@ -101,21 +102,21 @@ void GPlotWidget::makeTree(int itemDataType)
     {
     case ITEM_DATA_TYPE_System:
         tables = m_data.getSystemTables();
-        infos = mTemplate->getSystemInfoList();
+        infos = m_template->getSystemInfoList();
         srcTableName = "system";
         replaceSrcTableName = QStringLiteral("系统");
         break;
 
     case ITEM_DATA_TYPE_Module:
         tables = m_data.getModuleTables();
-        infos = mTemplate->getModuleInfoList();
+        infos = m_template->getModuleInfoList();
         srcTableName = "module";
         replaceSrcTableName = QStringLiteral("模块");
         break;
 
     case ITEM_DATA_TYPE_Idu:
         tables = m_data.getIduTables();
-        infos = mTemplate->getIduInfoList();
+        infos = m_template->getIduInfoList();
         srcTableName = "idu";
         replaceSrcTableName = QStringLiteral("内机");
         break;
@@ -162,6 +163,40 @@ QVector<QCPGraphData> GPlotWidget::toPlotData(GHvacDataInfo::SeriesPtr x, GHvacD
         data[i].value = y->at(i);
     }
     return data;
+}
+
+/**
+ * @brief 查找
+ * @param keyword
+ */
+void GPlotWidget::search(const QString &keyword)
+{
+    QStringList kws = keyword.split(" ");
+    if(keyword.isEmpty()){
+        ui->treeView->setModel(m_treeModel);
+    }else{
+        m_searchModel->clear();
+        //遍历，如果没有ROLE_ITEM_DATA_SRC角色的是都要保留
+        int br = m_treeModel->rowCount();
+        for(int i=0;i<br;++i){
+            QStandardItem* orgRootItem = m_treeModel->item(i);
+            QStandardItem* serRootItem = orgRootItem->clone();
+            for(int j = 0;j<orgRootItem->rowCount();++j){
+                for(const QString& k : kws){
+                    if(orgRootItem->child(j)->text().contains(k)){
+                        serRootItem->appendRow(orgRootItem->child(j)->clone());
+                    }
+                }
+            }
+            if(serRootItem->rowCount() > 0){
+                m_searchModel->appendRow(serRootItem);
+            }else{
+                delete serRootItem;
+            }
+        }
+        ui->treeView->setModel(m_searchModel);
+        ui->treeView->expandAll();
+    }
 }
 
 
@@ -243,4 +278,14 @@ QString GPlotWidget::findNameBySrc(const QList<GNodeInfo>& infos, const QString&
     qDebug()	<< QStringLiteral("无法找到:") << src
             <<"    " << ss;
     return (QString());
+}
+
+void GPlotWidget::on_pushButtonSearch_clicked()
+{
+    search(ui->lineEditSearch->text());
+}
+
+void GPlotWidget::on_lineEditSearch_textChanged(const QString &arg1)
+{
+    search(arg1);
 }
