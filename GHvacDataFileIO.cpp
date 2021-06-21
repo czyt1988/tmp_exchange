@@ -11,6 +11,24 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <cmath>
+
+const QStringList c_canipfield_stringlist = { QStringLiteral("can_ip"),
+                          QStringLiteral("can ip"),
+                          QStringLiteral("Canip"),
+                          QStringLiteral("can1ip"),
+                          QStringLiteral("can1 ip"),
+                          QStringLiteral("can1_ip") };
+const QStringList c_datetimefild_stringlist = { QStringLiteral("记录时间"),
+                        QStringLiteral("RecordTime") };
+const QStringList c_projectfild_stringlist = { QStringLiteral("工程ip"),
+                           QStringLiteral("工程id"),
+                           QStringLiteral("Proj_ID"),
+                           QStringLiteral("projectid"),
+                           QStringLiteral("project id"),
+                           QStringLiteral("project_id"),
+                           QStringLiteral("Projid"),
+                           QStringLiteral("Proj_id")
+};
 GHvacDataFileIO::GHvacDataFileIO(QObject *p) : QObject(p)
     , mIsOpen(false)
 {
@@ -22,6 +40,7 @@ GHvacDataFileIO::GHvacDataFileIO(QObject *p) : QObject(p)
     mSetting.table_system = QStringLiteral("system.csv");
     mSetting.table_module = QStringLiteral("module.csv");
     mSetting.table_idu = QStringLiteral("idu.csv");
+    mSetting.projectidField = QStringLiteral("工程IP");
     mSetting.tablename_system = toTableName(mSetting.table_system);
     mSetting.tablename_module = toTableName(mSetting.table_module);
     mSetting.tablename_idu = toTableName(mSetting.table_idu);
@@ -117,6 +136,8 @@ void GHvacDataFileIO::open(const QString& filepath)
         }
     }
 
+    //先提取工程id
+    getProjectID(originTables);
 
     //开始对can ip进行聚合
     try{
@@ -160,7 +181,8 @@ void GHvacDataFileIO::open(const QString& filepath)
 //            toCsv(t, &f);
 //        }
 //    }
-    qDebug() << filepath << QStringLiteral("完成解析");
+    qDebug() << filepath << QStringLiteral("完成解析") << mHvacInfo;
+
     emit readed(mHvacInfo);
 }
 
@@ -208,7 +230,14 @@ QDateTime GHvacDataFileIO::formatDatetime(const QString& str)
     }
     dfmt = "yyyy-M-d H:m";
     dt = QDateTime::fromString(str, dfmt);
-
+    if (dt.isValid()) {
+        return (dt);
+    }
+    dfmt = "M/d/yyyy HH:mm:ss";
+    dt = QDateTime::fromString(str, dfmt);
+    if (dt.isValid()) {
+        return (dt);
+    }
     return (dt);
 }
 
@@ -245,7 +274,9 @@ bool GHvacDataFileIO::loadSetting()
     }
     mSetting.codec = obj["codec"].toString();
     mSetting.canipfield = obj["canipfield"].toString();
+    mSetting.projectidField = obj["projectidField"].toString();
     mSetting.datetimefield = obj["datetimefield"].toString();
+    setDatetimeField(mSetting.datetimefield);
     mSetting.datetimeformat = obj["datetimeformat"].toString();
     QJsonObject tobj = obj["tables"].toObject();
 
@@ -366,8 +397,21 @@ bool GHvacDataFileIO::groupByCanIP(QList<TablePtr> tables)
             mHvacInfo.tables.append(t);
         }else if (t->getName() == mSetting.tablename_module) {
             if (!t->haveFieldid(canipfield)) {
-                emit message(QStringLiteral("文件异常:配置信息中%1字段未能在数据表%2中查询到").arg(canipfield).arg(t->getName()));
-                return (false);
+                //进行测试，对可能的canip字段进行测试,如果找到就继续，没有找到就退出
+                bool isfix = false;
+                for (const QString& cf : c_canipfield_stringlist)
+                {
+                    if (t->haveFieldid(cf)) {
+                        isfix = true;
+                        canipfield = cf;
+                        mSetting.canipfield = cf;
+                        break;
+                    }
+                }
+                if (!isfix) {
+                    emit message(QStringLiteral("文件异常:配置信息中%1字段未能在数据表%2中查询到").arg(canipfield).arg(t->getName()));
+                    return (false);
+                }
             }
             QElapsedTimer tic;
             tic.start();
@@ -383,8 +427,19 @@ bool GHvacDataFileIO::groupByCanIP(QList<TablePtr> tables)
             emit message(info+QStringLiteral(" 耗时:%1").arg(tic.elapsed()));
         }else if (t->getName() == mSetting.tablename_idu) {
             if (!t->haveFieldid(canipfield)) {
-                emit message(QStringLiteral("文件异常:配置信息中%1字段未能在数据表%2中查询到").arg(canipfield).arg(t->getName()));
-                return (false);
+                bool isfix = false;
+                for (const QString& cf : c_canipfield_stringlist)
+                {
+                    if (t->haveFieldid(cf)) {
+                        isfix = true;
+                        canipfield = cf;
+                        break;
+                    }
+                }
+                if (!isfix) {
+                    emit message(QStringLiteral("文件异常:配置信息中%1字段未能在数据表%2中查询到").arg(canipfield).arg(t->getName()));
+                    return (false);
+                }
             }
             QElapsedTimer tic;
             tic.start();
@@ -418,12 +473,29 @@ void GHvacDataFileIO::unionDateTime()
 
     tic.start();
     QString datetimefield = mSetting.datetimefield;
+
+    if (datetimefield.isEmpty()) {
+        datetimefield = QStringLiteral("记录时间");
+    }
     QList<TableType::Type> unionDatetime;
 
-    if (true) {
+    do
+    {
         QSet<TableType::Type> datetime;
         for (TablePtr t : mHvacInfo.tables)
         {
+            if (!t->haveFieldid(datetimefield)) {
+                //如果没有时间字段，就进行猜测
+                for (const QString& df : c_datetimefild_stringlist)
+                {
+                    if (t->haveFieldid(df)) {
+                        datetimefield = df;
+                        setDatetimeField(df);//猜测对了，把时间字段赋值
+                        mSetting.datetimefield = df;
+                        break;
+                    }
+                }
+            }
             qDebug() << "name:" << t->getName() << " r:" << t->rowCount() << " c:" << t->columnCount();
             TableType::SeriesPtr r = t->row(datetimefield);
             if (r) {
@@ -438,7 +510,7 @@ void GHvacDataFileIO::unionDateTime()
         {
             mHvacInfo.allDateTimeScale.append(QDateTime::fromMSecsSinceEpoch(t));
         }
-    }
+    }while(0);
     message(QStringLiteral("完成时间提取，共%1个数据表，时间并集计算得到时间个数为%2个，耗时%3").arg(mHvacInfo.tables.size()).arg(unionDatetime.size()).arg(tic.elapsed()));
     if (unionDatetime.size() > 5) {
         qDebug()	<< unionDatetime[0] << unionDatetime[1] << unionDatetime[2]
@@ -459,6 +531,18 @@ void GHvacDataFileIO::orderByDatetime()
     tic.start();
     for (TablePtr t : mHvacInfo.tables)
     {
+        if (!t->haveFieldid(datetimefield)) {
+            //如果没有时间字段，就进行猜测
+            for (const QString& df : c_datetimefild_stringlist)
+            {
+                if (t->haveFieldid(df)) {
+                    datetimefield = df;
+                    setDatetimeField(df);//猜测对了，把时间字段赋值
+                    mSetting.datetimefield = df;
+                    break;
+                }
+            }
+        }
         qDebug() << "orderBy:" << datetimefield << t->getName() << t->rowCount();
         int index = t->nameToIndex(datetimefield);
         if (index < 0) {
@@ -468,7 +552,8 @@ void GHvacDataFileIO::orderByDatetime()
         }
         t->orderBy(index);
     }
-    message(QStringLiteral("完成所有表时间排序，耗时%1").arg(tic.elapsed()));
+    emit message(QStringLiteral("完成所有表时间排序，耗时%1").arg(tic.elapsed()));
+
     for (TablePtr t : mHvacInfo.tables)
     {
         qDebug() << t->getName();
@@ -494,4 +579,39 @@ int GHvacDataFileIO::getLineCount()
     }
     qDebug() << QStringLiteral("行数：") << l;
     return (l);
+}
+
+
+void GHvacDataFileIO::getProjectID(QList<TablePtr> tables)
+{
+    QString projectfield = mSetting.projectidField;
+
+    if (projectfield.isEmpty()) {
+        projectfield = QStringLiteral("Proj_ID");
+    }
+    for (TablePtr t : tables)
+    {
+        if (!t->haveFieldid(projectfield)) {
+            //如果没有时间字段，就进行猜测
+            for (const QString& pf : c_projectfild_stringlist)
+            {
+                if (t->haveFieldid(pf)) {
+                    projectfield = pf;
+                    mSetting.projectidField = pf;
+                    break;
+                }
+            }
+        }
+        if (!t->haveFieldid(projectfield)) {
+            emit message(QStringLiteral("未能找到工程id相关字段"));
+        }
+        //取工程id
+        TableType::SeriesPtr r = t->row(projectfield);
+        if (r && (r->size() > 0)) {
+            mHvacInfo.projectid = r->at(0);
+            emit hasGetProjectID(mHvacInfo.projectid);
+            emit message(QStringLiteral("工程id：%1").arg(mHvacInfo.projectid));
+            return;
+        }
+    }
 }

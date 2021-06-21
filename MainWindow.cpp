@@ -7,6 +7,7 @@
 #include "GHvacIOManager.h"
 #include "SARibbonGalleryGroup.h"
 #include "SACustomPlot.h"
+#include "GBigDataAPI.h"
 const QString c_template_path = "./template";
 MainWindow::MainWindow(QWidget *parent) :
     SARibbonMainWindow(parent),
@@ -24,7 +25,7 @@ MainWindow::MainWindow(QWidget *parent) :
     }
     ribbonBar()->setRibbonStyle(SARibbonBar::WpsLiteStyleTwoRow);
     showMaximized();
-    //ui->figureWidget->resetSplitterRatio();
+//    ui->projectArchivesWidget->setProjectID(1293569);
 }
 
 
@@ -74,10 +75,23 @@ void MainWindow::init()
     ui->dockWidgetFault->setWidget(ui->dockWidgetContents_2);
     this->addDockWidget(Qt::RightDockWidgetArea, ui->dockWidgetFault);
 
+    ui->dockWidgetPlotSet = new QDockWidget(this);
+    ui->treeviewPlotSet = new QTreeView();
+    ui->dockWidgetPlotSet->setWidget(ui->treeviewPlotSet);
+    this->addDockWidget(Qt::RightDockWidgetArea, ui->dockWidgetPlotSet);
+
+    ui->projectArchivesWidget = new GProjectArchivesWidget();
+    ui->tabWidget->addTab(ui->projectArchivesWidget
+        , QIcon(":/icon/icon/tabArchives.svg")
+        , QStringLiteral("档案"));
     ui->dataReviewWidget = new GDataReviewWidget();
-    ui->tabWidget->addTab(ui->dataReviewWidget, QStringLiteral("数据回放"));
+    ui->tabWidget->addTab(ui->dataReviewWidget
+        , QIcon(":/icon/icon/tabReview.svg")
+        , QStringLiteral("数据回放"));
     ui->figureWidget = new GPlotWidget();
-    ui->tabWidget->addTab(ui->figureWidget, QStringLiteral("数据绘图"));
+    ui->tabWidget->addTab(ui->figureWidget
+        , QIcon(":/icon/icon/tabChart.svg")
+        , QStringLiteral("数据绘图"));
 
     //action
     ui->actionOpen = new QAction(this);
@@ -86,6 +100,9 @@ void MainWindow::init()
     ui->actionDataViewWindow = new QAction(this);
     ui->actionDataViewWindow->setObjectName(QString::fromUtf8("actionDataViewWindow"));
     ui->actionDataViewWindow->setIcon(QIcon(":/icon/icon/dataViewWindow.svg"));
+    ui->actionArchivesWindow = new QAction(this);
+    ui->actionArchivesWindow->setObjectName(QString::fromUtf8("actionArchivesWindow"));
+    ui->actionArchivesWindow->setIcon(QIcon(":/icon/icon/archivesWindow.svg"));
     ui->actionMessageViewWindow = new QAction(this);
     ui->actionMessageViewWindow->setObjectName(QString::fromUtf8("actionMessageViewWindow"));
     ui->actionMessageViewWindow->setIcon(QIcon(":/icon/icon/messageView.svg"));
@@ -162,6 +179,7 @@ void MainWindow::init()
     ui->categoryMain->addPannel(ui->pannelMainFile);
 
     ui->pannelMainWindowList = new SARibbonPannel();
+    ui->pannelMainWindowList->addLargeAction(ui->actionArchivesWindow);
     ui->pannelMainWindowList->addLargeAction(ui->actionDataViewWindow);
     ui->pannelMainWindowList->addLargeAction(ui->actionFigureWindow);
     ui->pannelMainWindowList->addSmallAction(ui->actionMessageViewWindow);
@@ -208,6 +226,10 @@ void MainWindow::init()
     ui->categoryFigure->addPannel(ui->pannelFigureOpetion);
     //组建立ribbon界面
 
+    //
+    ui->plotTreeModel = new SACustomPlotTreeModel(this);
+    ui->plotTreeModel->setPlot(ui->figureWidget->figure());
+    ui->treeviewPlotSet->setModel(ui->plotTreeModel);
 
     //某些状态的初始化
     ui->actionMessageViewWindow->setChecked(true);
@@ -224,10 +246,13 @@ void MainWindow::init()
     connect(IOManager, &GHvacIOManager::fileReaded, this, &MainWindow::onFileReaded);
     connect(IOManager, &GHvacIOManager::message, this, &MainWindow::onMessage);
     connect(IOManager, &GHvacIOManager::openFailed, this, &MainWindow::onOpenFailed);
+    connect(IOManager, &GHvacIOManager::hasGetProjectID, ui->projectArchivesWidget, &GProjectArchivesWidget::setProjectID);
     connect(TemplateManager, &GTemplateManager::templateChanged, this, &MainWindow::onTemplateChanged);
+    connect(ui->projectArchivesWidget, &GProjectArchivesWidget::message, this, &MainWindow::onMessage);
     connect(ui->dataReviewWidget, &GDataReviewWidget::message, this, &MainWindow::onMessage);
     connect(ui->widgetFaule, &GFaultWidget::indexReques, ui->dataReviewWidget, &GDataReviewWidget::toIndex);
     connect(ui->actionOpen, &QAction::triggered, this, &MainWindow::onActionOpenTriggered);
+    connect(ui->actionArchivesWindow, &QAction::triggered, this, &MainWindow::onActionArchivesWindowTriggered);
     connect(ui->actionDataViewWindow, &QAction::triggered, this, &MainWindow::onActionDataViewWindowTriggered);
     connect(ui->actionMessageViewWindow, &QAction::triggered, this, &MainWindow::onActionMessageViewWindowTriggered);
     connect(ui->actionFaultViewWindow, &QAction::triggered, this, &MainWindow::onActionFaultViewWindowTriggered);
@@ -250,9 +275,10 @@ void MainWindow::init()
 
 void MainWindow::UI::retranslateUi(MainWindow *w)
 {
-    w->setWindowTitle(QStringLiteral("格力大数据工作台"));
+    w->setWindowTitle(QStringLiteral("格力大数据工作台(BigData Workbench)"));
     dockWidgetMessage->setWindowTitle(QStringLiteral("消息"));
     dockWidgetFault->setWindowTitle(QStringLiteral("故障信息"));
+    dockWidgetPlotSet->setWindowTitle(QStringLiteral("绘图设置"));
     w->ribbonBar()->applicationButton()->setText(QStringLiteral("GREE"));
     categoryMain->setCategoryName(QStringLiteral("主页"));
     categoryDataView->setCategoryName(QStringLiteral("回放"));
@@ -264,6 +290,7 @@ void MainWindow::UI::retranslateUi(MainWindow *w)
     pannelFigureOpetion->setPannelName(QStringLiteral("绘图操作"));
     //action
     actionOpen->setText(QStringLiteral("打开"));
+    actionArchivesWindow->setText(QStringLiteral("档案视图"));
     actionDataViewWindow->setText(QStringLiteral("回放视图"));
     actionFigureWindow->setText(QStringLiteral("绘图视图"));
     actionMessageViewWindow->setText(QStringLiteral("消息窗口"));
@@ -452,6 +479,7 @@ void MainWindow::onTabWidgetCurrentChanged(int index)
 void MainWindow::onActionFigureLegendTriggered(bool c)
 {
     ui->figureWidget->figure()->showLegend(c);
+    ui->plotTreeModel->update();
 }
 
 
@@ -540,6 +568,12 @@ void MainWindow::onActionOpenTriggered()
     IOManager->openReviewData(filepath);
     ui->actionOpen->setDisabled(true);
     ui->actionRunOrStopDataView->setDisabled(true);
+}
+
+
+void MainWindow::onActionArchivesWindowTriggered()
+{
+    ui->tabWidget->setCurrentWidget(ui->projectArchivesWidget);
 }
 
 

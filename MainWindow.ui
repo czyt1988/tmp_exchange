@@ -11,7 +11,13 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>BigData Workbench</string>
+  </property>
+  <property name="iconSize">
+   <size>
+    <width>32</width>
+    <height>32</height>
+   </size>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -34,6 +40,21 @@
      <widget class="QTabWidget" name="tabWidget">
       <property name="tabPosition">
        <enum>QTabWidget::West</enum>
+      </property>
+      <property name="tabShape">
+       <enum>QTabWidget::Triangular</enum>
+      </property>
+      <property name="iconSize">
+       <size>
+        <width>25</width>
+        <height>25</height>
+       </size>
+      </property>
+      <property name="elideMode">
+       <enum>Qt::ElideMiddle</enum>
+      </property>
+      <property name="documentMode">
+       <bool>true</bool>
       </property>
      </widget>
     </item>
@@ -100,9 +121,39 @@
     </layout>
    </widget>
   </widget>
+  <widget class="QDockWidget" name="dockWidgetPlot">
+   <property name="windowTitle">
+    <string>绘图设置</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>2</number>
+   </attribute>
+   <widget class="QWidget" name="dockWidgetContents_3">
+    <layout class="QVBoxLayout" name="verticalLayout_4">
+     <property name="spacing">
+      <number>0</number>
+     </property>
+     <property name="leftMargin">
+      <number>0</number>
+     </property>
+     <property name="topMargin">
+      <number>0</number>
+     </property>
+     <property name="rightMargin">
+      <number>0</number>
+     </property>
+     <property name="bottomMargin">
+      <number>0</number>
+     </property>
+     <item>
+      <widget class="QTreeView" name="treeViewPlot"/>
+     </item>
+    </layout>
+   </widget>
+  </widget>
   <action name="actionPlotWindow">
    <property name="icon">
-    <iconset resource="icon.qrc">
+    <iconset>
      <normaloff>:/icon/icon/plotWindow.png</normaloff>:/icon/icon/plotWindow.png</iconset>
    </property>
    <property name="text">
@@ -118,8 +169,6 @@
    <container>1</container>
   </customwidget>
  </customwidgets>
- <resources>
-  <include location="icon.qrc"/>
- </resources>
+ <resources/>
  <connections/>
 </ui>

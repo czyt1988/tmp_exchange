@@ -30,9 +30,11 @@ private:									 \
 ///
 #ifndef SA_IMPL_PUBLIC
 #define SA_IMPL_PUBLIC(Class)								   \
+    friend class Class;								   \
+public:											   \
     inline Class *q_func() { return (static_cast<Class *>(q_ptr)); }		   \
     inline const Class *q_func() const { return (static_cast<const Class *>(q_ptr)); } \
-    friend class Class;								   \
+private:										   \
     Class *q_ptr;
 #endif
 ///

@@ -45,6 +45,10 @@ signals:
      */
     void openFailed();
 
+    /**
+     * @brief 获取到工程id
+     */
+    void hasGetProjectID(int projectid);
 private slots:
 
     void onFileReaded(GHvacDataInfo info);

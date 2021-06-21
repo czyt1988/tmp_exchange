@@ -37,9 +37,13 @@ public:
     QList<int> moduleCanIPs;
     QList<int> iduCanIPs;
     QList<QDateTime> allDateTimeScale;
-    QStringList filesList;
+    QStringList filesList;          ///< 保存压缩包里的文件名
     QList<TablePtr> tables;
-    QString fieldOfDatetime;///< 时间字段
+    QString fieldOfDatetime;        ///< 时间字段
+    int projectid;                  ///< 工程id
 };
 Q_DECLARE_METATYPE(GHvacDataInfo)
+
+QDebug operator<<(QDebug debug, const GHvacDataInfo& c);
+
 #endif // GHVACDATAINFO_H

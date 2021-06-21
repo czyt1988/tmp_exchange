@@ -11,6 +11,7 @@ class SACustomPlotPrivate;
  */
 class SACustomPlot : public QCustomPlot
 {
+    Q_OBJECT
 public:
     SACustomPlot(QWidget *p = nullptr);
     ~SACustomPlot();
@@ -59,6 +60,9 @@ public:
     bool installYValueTracer();
     bool isInstallYValueTracer() const;
     void uninstallYValueTracer();
+
+signals:
+
 protected:
     virtual void mouseMoveEvent(QMouseEvent *e) Q_DECL_OVERRIDE;
 

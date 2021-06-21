@@ -101,6 +101,34 @@ void GIDUTableModel::updateValue(const QList<GNodeInfo>& value)
 }
 
 
+void GIDUTableModel::updateValue(int canip, const QList<GNodeInfo>& value)
+{
+    beginResetModel();
+    if (value.isEmpty()) {
+        qDebug() << QStringLiteral("传入空的list");
+        return;
+    }
+    if (mTable.rowCount() <= 0) {
+        qDebug() << QStringLiteral("table 为空");
+        return;
+    }
+    QString canipstr = QString::number(canip);
+    int r = mTable.nameToIndex(canipstr);
+
+    if (r < 0) {
+        qDebug() << QStringLiteral("未能找到canip:%1").arg(canip);
+        return;
+    }
+    int s = qMin(value.size(), mTable.columnCount());
+
+    for (int i = 0; i < s; ++i)
+    {
+        mTable[r][i] = value[i].mDisplayValue;
+    }
+    endResetModel();
+}
+
+
 void GIDUTableModel::update()
 {
     beginResetModel();

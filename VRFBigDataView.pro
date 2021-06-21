@@ -5,6 +5,8 @@
 #-------------------------------------------------
 
 QT       += core gui xml printsupport
+QT += network
+
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 CONFIG += C++11
 include($$PWD/common.pri)
@@ -44,7 +46,11 @@ SOURCES += \
     qcustomplot.cpp \
     GTemplateManager.cpp \
     SAColorList.cpp \
-    SAColorMap.cpp
+    SAColorMap.cpp \
+    GBigDataAPI.cpp \
+    GProjectArchivesWidget.cpp \
+    GArchivesTableModel.cpp \
+    SACustomPlotTreeModel.cpp
 
 HEADERS += \
     GDataReviewWidget.h \
@@ -70,7 +76,11 @@ HEADERS += \
     GTemplateManager.h \
     SAColorAlgorithm.h \
     SAColorList.h \
-    SAColorMap.h
+    SAColorMap.h \
+    GBigDataAPI.h \
+    GProjectArchivesWidget.h \
+    GArchivesTableModel.h \
+    SACustomPlotTreeModel.h
 
 FORMS += \
     GDataReviewWidget.ui \
@@ -78,9 +88,12 @@ FORMS += \
     GItemDisplayWidget.ui \
     GModuleValueView.ui \
     MainWindow.ui \
-    GFaultWidget.ui
+    GFaultWidget.ui \
+    GProjectArchivesWidget.ui
 
 include($$PWD/3rdparty/quazip-0.7.3/use_quazip.pri)
 include($$PWD/useSARibbonBar.pri)
+#include($$PWD/3rdparty/QtXlsx/src/xlsx/qtxlsx.pri)
+include($$PWD/3rdparty/QtXlsx/useQtXlsx.pri)
 RESOURCES += \
     icon.qrc

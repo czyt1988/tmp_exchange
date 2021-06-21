@@ -25,7 +25,10 @@
 #include "SARibbonCategory.h"
 #include "SARibbonPannel.h"
 #include "SARibbonGallery.h"
+#include "GProjectArchivesWidget.h"
 #include <functional>
+#include "SACustomPlotTreeModel.h"
+#include <QTreeView>
 class MainWindow : public SARibbonMainWindow
 {
     Q_OBJECT
@@ -44,6 +47,7 @@ private slots:
     void onFaultWidgetIndexReques(int index);
 
     void onActionOpenTriggered();
+    void onActionArchivesWindowTriggered();
     void onActionDataViewWindowTriggered();
     void onActionFigureWindowTriggered();
     void onActionMessageViewWindowTriggered(bool c);
@@ -61,6 +65,7 @@ private slots:
     void onActionFigureAxesSelectTriggered(bool c);
     void onActionFigureLegendSelectTriggered(bool c);
     void onActionFigureInstallYTracerTriggered(bool c);
+
 private:
     void init();
 
@@ -72,6 +77,7 @@ public:
         QAction *actionMessageViewWindow;
         QAction *actionFaultViewWindow;
         QAction *actionFigureWindow;
+        QAction *actionArchivesWindow;
         QAction *actionRunOrStopDataView;
         QAction *actionRunDataViewSpeed1;
         QAction *actionRunDataViewSpeed2;
@@ -90,12 +96,15 @@ public:
         QTabWidget *tabWidget;
         QStatusBar *statusbar;
         QDockWidget *dockWidgetMessage;
+        QDockWidget *dockWidgetPlotSet;
+        QTreeView *treeviewPlotSet;
         QWidget *dockWidgetContents;
         QVBoxLayout *verticalLayout;
         QTextEdit *textEdit;
         QDockWidget *dockWidgetFault;
         QWidget *dockWidgetContents_2;
         QVBoxLayout *verticalLayout_2;
+        GProjectArchivesWidget *projectArchivesWidget;
         GFaultWidget *widgetFaule;
         GDataReviewWidget *dataReviewWidget;
         GPlotWidget *figureWidget;
@@ -109,18 +118,8 @@ public:
         SARibbonPannel *pannelDataViewOpetion;
         SARibbonPannel *pannelFigureOpetion;
         QList<QAction *> templateActionList;
+        SACustomPlotTreeModel *plotTreeModel;
         void retranslateUi(MainWindow *w);
-
-//        void createAction(QAction* act
-//                          ,const QString& objName
-//                          ,const QString& text
-//                          ,const QIcon& icon
-//                          ,std::function<void(bool)>
-//                          ,bool isCheackable
-//                          ,bool isChecked
-//                          ,SARibbonPannel* pannel
-//                          ,SARibbonPannelItem::RowProportion rp = SARibbonPannelItem::Large
-//                          );
     };
     QScopedPointer<UI> ui;
 };

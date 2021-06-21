@@ -13,6 +13,9 @@ namespace Ui {
 class GPlotWidget;
 }
 
+/**
+ * @brief 绘图窗口
+ */
 class GPlotWidget : public QWidget
 {
     Q_OBJECT
@@ -23,7 +26,8 @@ public:
     void setData(const GHvacDataInfo& d);
     void setTemplate(GTemplate *temp);
     void resetSplitterRatio();
-    SACustomPlot* figure();
+    SACustomPlot *figure();
+
 signals:
 
     /**
@@ -31,18 +35,25 @@ signals:
      * @param msg
      */
     void message(const QString& msg);
+
 private:
     void resetTreeView();
     QString findNameBySrc(const QList<GNodeInfo>& infos, const QString& src);
     void makeTree(int itemDataType);
     QVector<QCPGraphData> toPlotData(GHvacDataInfo::SeriesPtr x, GHvacDataInfo::SeriesPtr y);
     void search(const QString& keyword);
+    void clearAllState(QStandardItemModel *model);
+    void clearStandardItemState(QStandardItem *item);
+    QStandardItem *findByID(qulonglong id);
+    QStandardItem *findByID(QStandardItem *par, qulonglong id);
+
 private slots:
     void onModelItemChanged(QStandardItem *item);
-    void onTreeViewDoubleClicked(const QModelIndex &index);
+    void onSearchModelItemChanged(QStandardItem *item);
+    void onTreeViewDoubleClicked(const QModelIndex& index);
     void on_pushButtonSearch_clicked();
 
-    void on_lineEditSearch_textChanged(const QString &arg1);
+    void on_lineEditSearch_textChanged(const QString& arg1);
 
 private:
     Ui::GPlotWidget *ui;

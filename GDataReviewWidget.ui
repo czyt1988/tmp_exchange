@@ -123,7 +123,7 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>446</width>
+             <width>443</width>
              <height>233</height>
             </rect>
            </property>
@@ -153,6 +153,9 @@
          <property name="selectionBehavior">
           <enum>QAbstractItemView::SelectRows</enum>
          </property>
+         <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
+          <bool>true</bool>
+         </attribute>
         </widget>
        </item>
       </layout>

@@ -230,15 +230,15 @@ void GDataReviewWidget::on_horizontalSlider_valueChanged(int value)
 
 void GDataReviewWidget::valueRender(const QJsonObject& obj)
 {
-    QJsonDocument doc(obj);
-    QString str = QString(doc.toJson(QJsonDocument::Indented));
+//    QJsonDocument doc(obj);
+//    QString str = QString(doc.toJson(QJsonDocument::Indented));
 
-    QFile f("./VRFBigDataView.json");
+//    QFile f("./VRFBigDataView.json");
 
-    if (f.open(QIODevice::ReadWrite)) {
-        QTextStream s(&f);
-        s << str;
-    }
+//    if (f.open(QIODevice::ReadWrite)) {
+//        QTextStream s(&f);
+//        s << str;
+//    }
 
 
     if (mCurrentTemplate == nullptr) {
@@ -305,6 +305,7 @@ void GDataReviewWidget::valueRender(const QJsonObject& obj)
         QJsonObject::const_iterator i = iduobj.find(kname);
         if (i == iduobj.constEnd()) {
             qDebug() << QStringLiteral("无法找到canip:")<<canip<<QStringLiteral("的内容");
+            qDebug() << mHvacInfo;
             continue;
         }
         QJsonObject iduwithip = (*i).toObject();
@@ -318,7 +319,7 @@ void GDataReviewWidget::valueRender(const QJsonObject& obj)
             }
             n.mDisplayValue = (*i).toString();
         }
-        mCurrentTemplate->getIduModel()->updateValue(idunodes);
+        mCurrentTemplate->getIduModel()->updateValue(canip, idunodes);
     }
 }
 

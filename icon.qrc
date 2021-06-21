@@ -25,5 +25,14 @@
         <file>icon/chartLegendSelect.svg</file>
         <file>icon/chartSelectZoom.svg</file>
         <file>icon/chartYTracer.svg</file>
+        <file>icon/archivesWindow.svg</file>
+        <file>icon/tabArchives.svg</file>
+        <file>icon/tabChart.svg</file>
+        <file>icon/tabReview.svg</file>
+        <file>icon/search.svg</file>
+        <file>icon/fault.svg</file>
+        <file>icon/fixed.svg</file>
+        <file>icon/download.svg</file>
+        <file>icon/changeMac.svg</file>
     </qresource>
 </RCC>

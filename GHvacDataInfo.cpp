@@ -115,3 +115,19 @@ QList<GHvacDataInfo::TablePtr> GHvacDataInfo::getIduTables() const
     }
     return (res);
 }
+
+
+QDebug operator<<(QDebug debug, const GHvacDataInfo& c)
+{
+    QDebugStateSaver saver(debug);
+
+    debug	<< "GHvacDataInfo:"
+        << "\n  filesList:" << c.filesList
+        << "\n  projectid:" << c.projectid
+        << "\n  fieldOfDatetime:" << c.fieldOfDatetime
+        << "\n  moduleCanIPs:" << c.moduleCanIPs
+        << "\n  iduCanIPs:" << c.iduCanIPs
+    ;
+
+    return (debug);
+}

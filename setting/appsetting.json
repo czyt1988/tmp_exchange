@@ -1,0 +1,11 @@
+{
+    "codec":"GBK",
+    "canipfield":"can1 ip",
+    "datetimefield":"记录时间",
+    "datetimeformat":"yyyy/M/d H:m:s",
+    "tables":{
+        "system":"system.csv",
+        "module":"module.csv",
+        "idu":"idu.csv"
+    }
+}

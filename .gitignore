@@ -3,3 +3,6 @@ build-*
 *-pre1
 *.user
 *.user.22
+*.autosave
+builded*
+VRFBigDataView.pro.*

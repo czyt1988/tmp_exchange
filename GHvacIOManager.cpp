@@ -34,8 +34,10 @@ void GHvacIOManager::openReviewData(const QString& filepath)
     //业务逻辑
     connect(this, &GHvacIOManager::startOpenFile, io, &GHvacDataFileIO::open);
     connect(io, &GHvacDataFileIO::readed, this, &GHvacIOManager::onFileReaded);
-    connect(io, &GHvacDataFileIO::message, this, &GHvacIOManager::message);
     connect(io, &GHvacDataFileIO::error, this, &GHvacIOManager::onIoError);
+    //信号转发
+    connect(io, &GHvacDataFileIO::hasGetProjectID, this, &GHvacIOManager::hasGetProjectID);
+    connect(io, &GHvacDataFileIO::message, this, &GHvacIOManager::message);
     //唤起线程自杀
     connect(io, &GHvacDataFileIO::readed, this, [readThread](GHvacDataInfo) {
         readThread->quit();

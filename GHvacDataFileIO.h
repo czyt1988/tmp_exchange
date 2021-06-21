@@ -54,6 +54,10 @@ signals:
      */
     void message(const QString& msg);
 
+    /**
+     * @brief 获取到工程id
+     */
+    void hasGetProjectID(int projectid);
 private:
     QString toTableName(const QString& csvname);
     QDateTime formatDatetime(const QString& str);
@@ -71,8 +75,11 @@ private:
     //对时间排序
     void orderByDatetime();
 
-    //
+    //获取行数
     int getLineCount();
+
+    //获取工程id
+    void getProjectID(QList<TablePtr> tables);
 
 private:
     struct Setting {
@@ -86,6 +93,7 @@ private:
         QString tablename_system;
         QString tablename_module;
         QString tablename_idu;
+        QString projectidField;
     };
     Setting mSetting;
     QString mFileName;
