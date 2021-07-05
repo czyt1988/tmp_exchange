@@ -9,27 +9,30 @@ private:
     GTemplateManager(QObject *p = nullptr);
 public:
     static GTemplateManager *getInstance();
-    int loadTemplates(const QString& path);
-    QList<GTemplate *> getAllTemplates() const;
-    GTemplate *getCurrentTemplate() const;
-    void setCurrentTemplate(GTemplate *t);
-    void setCurrentTemplate(int index);
-    int getTemplateCount() const;
 
+    //回放模板
+    int loadReviewTemplates(const QString& path);
+    QList<GTemplate *> getAllReviewTemplates() const;
+    GTemplate *getCurrentReviewTemplate() const;
+    void setCurrentReviewTemplate(GTemplate *t);
+    void setCurrentReviewTemplate(int index);
+    int getReviewTemplateCount() const;
+
+    //监控模板
 signals:
 
     /**
      * @brief 模板发生改变信号
      * @param temp
      */
-    void templateChanged(GTemplate *temp);
+    void reviewTemplateChanged(GTemplate *temp);
 
 protected:
     void deleteTemplates();
 
 private:
-    QList<GTemplate *> mTemplate;
-    int mCurrentIndex;
+    QList<GTemplate *> mReviewTemplate;
+    int mCurrentReviewIndex;
 };
 #ifndef TemplateManager
 #define TemplateManager    GTemplateManager::getInstance()

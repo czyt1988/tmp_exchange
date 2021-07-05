@@ -34,5 +34,8 @@
         <file>icon/fixed.svg</file>
         <file>icon/download.svg</file>
         <file>icon/changeMac.svg</file>
+        <file>icon/install.svg</file>
+        <file>icon/produce.svg</file>
+        <file>icon/allMonitorList.svg</file>
     </qresource>
 </RCC>

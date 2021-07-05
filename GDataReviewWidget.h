@@ -1,5 +1,5 @@
-﻿#ifndef MAINWIDGET_H
-#define MAINWIDGET_H
+﻿#ifndef GDATAREVIEWWIDGET_H
+#define GDATAREVIEWWIDGET_H
 #include <QtWidgets/QWidget>
 #include "GTemplate.h"
 #include "GModuleValueView.h"

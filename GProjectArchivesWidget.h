@@ -4,7 +4,7 @@
 #include <QStandardItemModel>
 #include <QtWidgets/QWidget>
 #include "GArchivesTableModel.h"
-
+#include <QPointer>
 namespace Ui {
 class GProjectArchivesWidget;
 }
@@ -18,14 +18,18 @@ public:
     ~GProjectArchivesWidget();
 public slots:
     void setProjectID(int proid);
+    void setupAPI(GBigDataAPI *api);
 
 protected:
     void changeEvent(QEvent *e);
 
 private slots:
+    void onRecPing(QJsonObject res);
     void onRecProjectInfo(QJsonObject res);
-    void onRecProjectFaults(QJsonArray res);
+    void onRecProjectFaults(QJsonObject res);
     void onRecProjectMacChangeHistory(QJsonObject res);
+    void onRecProduceInfo(QJsonObject res);
+    void onRecInstallInfo(QJsonObject res);
     void on_pushButtonSearch_clicked();
 
     void on_pushButtonExport_clicked();
@@ -40,7 +44,7 @@ signals:
 
 private:
     Ui::GProjectArchivesWidget *ui;
-    GBigDataAPI *m_api;
+    QPointer<GBigDataAPI> m_api;
     QStandardItemModel *m_treeModel;
     GArchivesTableModel *m_tableModel;
     QString m_searchArg; //有可能是工程id，有可能是条码

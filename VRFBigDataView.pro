@@ -26,6 +26,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 
 SOURCES += \
+    GListAllMonitorDialog.cpp \
     SACustomPlotAbstractValueTracer.cpp \
     SACustomPlotYValueTracer.cpp \
     main.cpp \
@@ -55,6 +56,7 @@ SOURCES += \
 HEADERS += \
     GDataReviewWidget.h \
     GHvacIOManager.h \
+    GListAllMonitorDialog.h \
     GPlotWidget.h \
     GNodeInfo.h \
     GTemplate.h \
@@ -84,6 +86,7 @@ HEADERS += \
 
 FORMS += \
     GDataReviewWidget.ui \
+    GListAllMonitorDialog.ui \
     GPlotWidget.ui \
     GItemDisplayWidget.ui \
     GModuleValueView.ui \

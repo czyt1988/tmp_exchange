@@ -7,21 +7,19 @@
 #include "SACsvStream.h"
 #include <QMessageBox>
 #include "xlsxdocument.h"
+
 GProjectArchivesWidget::GProjectArchivesWidget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::GProjectArchivesWidget)
+    , m_api(nullptr)
 {
     ui->setupUi(this);
-    m_api = new GBigDataAPI(this);
-    connect(m_api, &GBigDataAPI::projectInfos, this, &GProjectArchivesWidget::onRecProjectInfo);
-    connect(m_api, &GBigDataAPI::projectFaults, this, &GProjectArchivesWidget::onRecProjectFaults);
-    connect(m_api, &GBigDataAPI::projectMacChangeHistory, this, &GProjectArchivesWidget::onRecProjectMacChangeHistory);
     m_treeModel = new QStandardItemModel(this);
     m_tableModel = new GArchivesTableModel(this);
     ui->treeView->setModel(m_treeModel);
     ui->tableView->setModel(m_tableModel);
     ui->progressBar->setVisible(false);
-    ui->progressBar->setRange(0, 3);
+    ui->progressBar->setRange(0, 5);
     ui->progressBar->setValue(0);
 }
 
@@ -34,14 +32,45 @@ GProjectArchivesWidget::~GProjectArchivesWidget()
 
 void GProjectArchivesWidget::setProjectID(int proid)
 {
+    if (m_api.isNull()) {
+        emit message(QStringLiteral("api未初始化完全"));
+        return;
+    }
     ui->lineEditInput->setText(QString::number(proid));
+    ui->progressBar->setRange(0, 5);
     ui->progressBar->setValue(0);
     ui->progressBar->setVisible(true);
     m_api->requestProjectInfo(proid);
     m_api->requestProjectFaults(proid);
     m_api->requesMacChangeHistory(proid);
+    m_api->requesProduceInfo(proid);
+    m_api->requesInstallInfo(proid);
     m_searchArg = QString::number(proid);
     resetModel();
+}
+
+
+void GProjectArchivesWidget::setupAPI(GBigDataAPI *api)
+{
+    if ((api == m_api) || (nullptr == api)) {
+        return;
+    }
+
+    if (!m_api.isNull()) {
+        disconnect(m_api.data(), &GBigDataAPI::projectInfos, this, &GProjectArchivesWidget::onRecProjectInfo);
+        disconnect(m_api.data(), &GBigDataAPI::projectFaults, this, &GProjectArchivesWidget::onRecProjectFaults);
+        disconnect(m_api.data(), &GBigDataAPI::projectMacChangeHistory, this, &GProjectArchivesWidget::onRecProjectMacChangeHistory);
+        disconnect(m_api.data(), &GBigDataAPI::produceInfo, this, &GProjectArchivesWidget::onRecProduceInfo);
+        disconnect(m_api.data(), &GBigDataAPI::installInfo, this, &GProjectArchivesWidget::onRecInstallInfo);
+        disconnect(m_api.data(), &GBigDataAPI::ping, this, &GProjectArchivesWidget::onRecPing);
+    }
+    m_api = api;
+    connect(api, &GBigDataAPI::projectInfos, this, &GProjectArchivesWidget::onRecProjectInfo);
+    connect(api, &GBigDataAPI::projectFaults, this, &GProjectArchivesWidget::onRecProjectFaults);
+    connect(api, &GBigDataAPI::projectMacChangeHistory, this, &GProjectArchivesWidget::onRecProjectMacChangeHistory);
+    connect(api, &GBigDataAPI::produceInfo, this, &GProjectArchivesWidget::onRecProduceInfo);
+    connect(api, &GBigDataAPI::installInfo, this, &GProjectArchivesWidget::onRecInstallInfo);
+    connect(api, &GBigDataAPI::ping, this, &GProjectArchivesWidget::onRecPing);
 }
 
 
@@ -60,29 +89,46 @@ void GProjectArchivesWidget::changeEvent(QEvent *e)
 }
 
 
+void GProjectArchivesWidget::onRecPing(QJsonObject res)
+{
+    QVariantMap org = res.toVariantMap();
+
+    if (!org.contains("statue")) {
+        return;
+    }
+    bool isOk = org["statue"].toBool();
+
+    if (!isOk) {
+        emit message(QStringLiteral("ping异常,请检查服务器连接"));
+        return;
+    }
+    if (!org.contains("data")) {
+        emit message(QStringLiteral("ping结果异常").arg(m_searchArg));
+        return;
+    }
+    emit message(QStringLiteral("服务器连接正常"));
+}
+
+
 void GProjectArchivesWidget::onRecProjectInfo(QJsonObject res)
 {
     stepProgress();
-    if (!res.contains("errcode")) {
+    QVariantMap org = res.toVariantMap();
+
+    if (!org.contains("statue")) {
         return;
     }
-    int errcode = res["errcode"].toInt();
+    bool isOk = org["statue"].toBool();
 
-    if (0 != errcode) {
-        QString errstr;
-        switch (errcode)
-        {
-        case 101:
-            errstr = QStringLiteral("无工程信息");
-            break;
-
-        default:
-            break;
-        }
-        emit message(QStringLiteral("%1的查询结果异常：%2").arg(m_searchArg).arg(errstr));
+    if (!isOk) {
+        emit message(QStringLiteral("%1的查询结果异常").arg(m_searchArg));
         return;
     }
-    QVariantMap m = res.toVariantMap();
+    if (!org.contains("data")) {
+        emit message(QStringLiteral("%1的查询结果异常").arg(m_searchArg));
+        return;
+    }
+    QVariantMap m = org["data"].toMap();
     QList<QStandardItem *> row = createRow(QStringLiteral("工程id"), m[QStringLiteral("工程id")].toString());
 
     m_treeModel->appendRow(row);
@@ -127,12 +173,20 @@ void GProjectArchivesWidget::onRecProjectInfo(QJsonObject res)
     QStandardItem *itemModule = new QStandardItem(QStringLiteral("模块信息"));
     //模块信息 - 在线模块mac
     QStandardItem *item = new QStandardItem(QStringLiteral("在线模块mac"));
-    QList<QVariant> onlinemac = m[QStringLiteral("在线模块mac")].toList();
+    QVariantMap onlinemac = m[QStringLiteral("在线模块mac")].toMap();
 
-    for (int i = 0; i < onlinemac.size(); ++i)
+    for (auto i = onlinemac.begin(); i != onlinemac.end(); ++i)
     {
-        row = createRow(QStringLiteral("mac%1").arg(i+1), onlinemac[i].toString());
-        item->appendRow(row);
+        QString macadd = i.key();
+        QStandardItem *macitem = new QStandardItem(QStringLiteral("mac:%1").arg(macadd));
+        QVariantMap macval = i.value().toMap();
+        row = createRow(QStringLiteral("imei"), macval[QStringLiteral("imei")].toString());
+        macitem->appendRow(row);
+        row = createRow(QStringLiteral("iccid"), macval[QStringLiteral("iccid")].toString());
+        macitem->appendRow(row);
+        row = createRow(QStringLiteral("imsi"), macval[QStringLiteral("imsi")].toString());
+        macitem->appendRow(row);
+        item->appendRow(macitem);
     }
     itemModule->appendRow(item);
     //模块信息 - 不在线模块mac
@@ -147,12 +201,6 @@ void GProjectArchivesWidget::onRecProjectInfo(QJsonObject res)
         }
         itemModule->appendRow(item);
     }
-    //模块信息 - imei
-    row = createRow(QStringLiteral("imei"), m[QStringLiteral("imei")].toString());
-    itemModule->appendRow(row);
-    //模块信息 - 手机序列号
-    row = createRow(QStringLiteral("手机序列号"), m[QStringLiteral("手机序列号")].toString());
-    itemModule->appendRow(row);
     //模块信息 - 模块软件版本
     row = createRow(QStringLiteral("模块软件版本"), m[QStringLiteral("模块软件版本")].toString());
     itemModule->appendRow(row);
@@ -270,16 +318,33 @@ void GProjectArchivesWidget::onRecProjectInfo(QJsonObject res)
             m_tableModel->insertInfo(dt, info);
         }
     }
+    m_tableModel->sort(0);
+    m_tableModel->update();
     ui->tableView->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     ui->tableView->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     ui->tableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
 }
 
 
-void GProjectArchivesWidget::onRecProjectFaults(QJsonArray res)
+void GProjectArchivesWidget::onRecProjectFaults(QJsonObject res)
 {
     stepProgress();
-    QVariantList m = res.toVariantList();
+    QVariantMap org = res.toVariantMap();
+
+    if (!org.contains("statue")) {
+        return;
+    }
+    bool isOk = org["statue"].toBool();
+
+    if (!isOk) {
+        emit message(QStringLiteral("%1的故障接口查询结果异常").arg(m_searchArg));
+        return;
+    }
+    if (!org.contains("data")) {
+        emit message(QStringLiteral("%1的故障接口查询结果异常").arg(m_searchArg));
+        return;
+    }
+    QVariantList m = org["data"].toList();
 
     for (const QVariant& v : m)
     {
@@ -311,8 +376,8 @@ void GProjectArchivesWidget::onRecProjectFaults(QJsonArray res)
         info.mIcon = QIcon(":/icon/icon/fault.svg");
         m_tableModel->insertInfo(dt, info);
     }
-    m_tableModel->update();
     m_tableModel->sort(0);
+    m_tableModel->update();
     ui->tableView->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     ui->tableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
 }
@@ -321,18 +386,22 @@ void GProjectArchivesWidget::onRecProjectFaults(QJsonArray res)
 void GProjectArchivesWidget::onRecProjectMacChangeHistory(QJsonObject res)
 {
     stepProgress();
-    if (!res.contains("statue")) {
-        return;
-    }
-    bool issucceed = res["statue"].toBool();
+    QVariantMap org = res.toVariantMap();
 
-    if (!issucceed) {
+    if (!org.contains("statue")) {
         return;
     }
-    if (!res.contains("datas")) {
+    bool isOk = org["statue"].toBool();
+
+    if (!isOk) {
+        emit message(QStringLiteral("%1的故障接口查询结果异常").arg(m_searchArg));
         return;
     }
-    QVariantList m = res["datas"].toArray().toVariantList();
+    if (!org.contains("data")) {
+        emit message(QStringLiteral("%1的故障接口查询结果异常").arg(m_searchArg));
+        return;
+    }
+    QVariantList m = org["data"].toList();
 
     for (const QVariant& v : m)
     {
@@ -345,16 +414,121 @@ void GProjectArchivesWidget::onRecProjectMacChangeHistory(QJsonObject res)
             , "yyyy-MM-ddTHH:mm:ss");
         QString oldmac = obj[QStringLiteral("old_mac_addr")].toString();
         QString newmac = obj[QStringLiteral("new_mac_addr")].toString();
-        QString new_barcode = obj[QStringLiteral("new_barcode")].toString();
+        QString old_barcode = obj[QStringLiteral("old_barcode")].toString();
         GArchivesTableModel::ArchiveInfo info;
         info.mType = QStringLiteral("换版");
         info.mInfo = QStringLiteral("旧MAC:%1\n"
             "新MAC:%2\n"
-            "新条码:%3").arg(oldmac).arg(newmac).arg(new_barcode);
+            "旧条码:%3").arg(oldmac).arg(newmac).arg(old_barcode);
         info.mIcon = QIcon(":/icon/icon/changeMac.svg");
         info.mBackColor = QColor(224, 240, 255);
         m_tableModel->insertInfo(dt, info);
     }
+    m_tableModel->sort(0);
+    m_tableModel->update();
+    ui->tableView->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    ui->tableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+}
+
+
+/**
+ * @brief 生产数据
+ * @param res
+ */
+void GProjectArchivesWidget::onRecProduceInfo(QJsonObject res)
+{
+    stepProgress();
+    QVariantMap org = res.toVariantMap();
+
+    if (!org.contains("statue")) {
+        return;
+    }
+    bool isOk = org["statue"].toBool();
+
+    if (!isOk) {
+        emit message(QStringLiteral("%1的生产信息接口查询结果异常").arg(m_searchArg));
+        return;
+    }
+    if (!org.contains("data")) {
+        emit message(QStringLiteral("%1的生产信息接口查询结果异常").arg(m_searchArg));
+        return;
+    }
+    QVariantMap map = org["data"].toMap();
+
+    for (auto i = map.begin(); i != map.end(); ++i)
+    {
+        QVariantMap valdict = i.value().toMap();
+        QDateTime dt = QDateTime::fromString(
+            valdict[QStringLiteral("producedate")].toString()
+            , "yyyy-MM-ddTHH:mm:ss");
+        GArchivesTableModel::ArchiveInfo info;
+        info.mType = QStringLiteral("生产");
+        info.mInfo = QStringLiteral("条码:%1\n"
+            "销售公司:%2\n"
+            "生产基地:%3")
+            .arg(i.key())
+            .arg(valdict[QStringLiteral("company")].toString())
+            .arg(valdict[QStringLiteral("productbase")].toString());
+        info.mIcon = QIcon(":/icon/icon/produce.svg");
+        info.mBackColor = QColor(227, 185, 245);
+        m_tableModel->insertInfo(dt, info);
+    }
+    m_tableModel->sort(0);
+    m_tableModel->update();
+    ui->tableView->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    ui->tableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+}
+
+
+void GProjectArchivesWidget::onRecInstallInfo(QJsonObject res)
+{
+    stepProgress();
+    QVariantMap org = res.toVariantMap();
+
+    if (!org.contains("statue")) {
+        return;
+    }
+    bool isOk = org["statue"].toBool();
+
+    if (!isOk) {
+        emit message(QStringLiteral("%1的安装信息接口查询结果异常").arg(m_searchArg));
+        return;
+    }
+    if (!org.contains("data")) {
+        emit message(QStringLiteral("%1的安装信息接口查询结果异常").arg(m_searchArg));
+        return;
+    }
+    QVariantMap map = org["data"].toMap();
+
+    for (auto i = map.begin(); i != map.end(); ++i)
+    {
+        QVariantMap valdict = i.value().toMap();
+        QDateTime dt = QDateTime::fromString(
+            valdict[QStringLiteral("installdate")].toString()
+            , "yyyy-MM-ddTHH:mm:ss");
+        GArchivesTableModel::ArchiveInfo info;
+        info.mType = QStringLiteral("安装");
+        info.mInfo = QStringLiteral("条码:%1\n"
+            "用户:%2,电话:%3\n"
+            "安装工名:%4,电话:%5\n"
+            "工程名称:%6\n"
+            "gps定位:%7\n"
+            "安装网点:%8\n"
+            "销售公司:%9"
+            )
+            .arg(i.key())
+            .arg(valdict[QStringLiteral("owner")].toString()).arg(valdict[QStringLiteral("ownerphone")].toString())
+            .arg(valdict[QStringLiteral("installperson")].toString()).arg(valdict[QStringLiteral("installphone")].toString())
+            .arg(valdict[QStringLiteral("projectname")].toString())
+            .arg(valdict[QStringLiteral("gpslocation")].toString())
+            .arg(valdict[QStringLiteral("dept")].toString())
+            .arg(valdict[QStringLiteral("orgname")].toString())
+        ;
+        info.mIcon = QIcon(":/icon/icon/install.svg");
+        info.mBackColor = QColor(245, 247, 209);
+        m_tableModel->insertInfo(dt, info);
+    }
+    m_tableModel->sort(0);
     m_tableModel->update();
     ui->tableView->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     ui->tableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);

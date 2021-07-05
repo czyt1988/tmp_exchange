@@ -43,7 +43,7 @@ protected:
 private slots:
     void onMessage(const QString& msg);
     void onFileReaded(GHvacDataInfo data);
-    void onTemplateChanged(GTemplate *temp);
+    void onReviewTemplateChanged(GTemplate *temp);
     void onFaultWidgetIndexReques(int index);
 
     void onActionOpenTriggered();
@@ -65,6 +65,7 @@ private slots:
     void onActionFigureAxesSelectTriggered(bool c);
     void onActionFigureLegendSelectTriggered(bool c);
     void onActionFigureInstallYTracerTriggered(bool c);
+    void onActionAllMonitorListTriggered();
 
 private:
     void init();
@@ -90,6 +91,7 @@ public:
         QAction *actionFigureAxesSelect;
         QAction *actionFigureLegendSelect;
         QAction *actionFigureInstallYTracer;
+        QAction *actionAllMonitorList;///< 列举所有监控信息
         QActionGroup *actionGroupRunDataViewSpeed;
         QWidget *centralwidget;
         QVBoxLayout *verticalLayout_3;
@@ -111,12 +113,14 @@ public:
         SARibbonCategory *categoryMain;
         SARibbonCategory *categoryDataView;
         SARibbonCategory *categoryFigure;
+        SARibbonCategory *categoryMonitor;
         SARibbonPannel *pannelMainFile;
         SARibbonPannel *pannelMainWindowList;
         SARibbonPannel *pannelMainDataTemplate;
         SARibbonGallery *galleryDataTemplate;
         SARibbonPannel *pannelDataViewOpetion;
         SARibbonPannel *pannelFigureOpetion;
+        SARibbonPannel *pannelMonitor;
         QList<QAction *> templateActionList;
         SACustomPlotTreeModel *plotTreeModel;
         void retranslateUi(MainWindow *w);

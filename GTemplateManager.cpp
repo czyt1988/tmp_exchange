@@ -2,20 +2,24 @@
 #include "GTemplate.h"
 #include <QDebug>
 #include <QDir>
-GTemplateManager::GTemplateManager(QObject *p):QObject(p)
-  ,mCurrentIndex(-1)
+GTemplateManager::GTemplateManager(QObject *p) : QObject(p)
+    , mCurrentReviewIndex(-1)
+    , mCurrentMonitorIndex(-1)
 {
 }
+
 
 GTemplateManager *GTemplateManager::getInstance()
 {
     static GTemplateManager s_templateMgr;
-    return &s_templateMgr;
+
+    return (&s_templateMgr);
 }
 
-int GTemplateManager::loadTemplates(const QString &path)
+
+int GTemplateManager::loadReviewTemplates(const QString& path)
 {
-    deleteTemplates();
+    deleteReviewTemplates();
     QDir dir(path);
     QStringList xmlfilelist = dir.entryList(QDir::NoDotAndDotDot|QDir::Files);
 
@@ -24,56 +28,98 @@ int GTemplateManager::loadTemplates(const QString &path)
         qDebug() << dir.path() + QDir::separator() + p;
         QScopedPointer<GTemplate> tp(new GTemplate(this));
         if (tp->load(dir.path() + QDir::separator() + p)) {
-            mTemplate.append(tp.take());
+            mReviewTemplate.append(tp.take());
         }
     }
-    return mTemplate.size();
+    return (mReviewTemplate.size());
 }
 
-QList<GTemplate *> GTemplateManager::getAllTemplates() const
+
+QList<GTemplate *> GTemplateManager::getAllReviewTemplates() const
 {
-    return mTemplate;
+    return (mReviewTemplate);
 }
 
-GTemplate *GTemplateManager::getCurrentTemplate() const
+
+GTemplate *GTemplateManager::getCurrentReviewTemplate() const
 {
-    if(mCurrentIndex >= 0 && mCurrentIndex < mTemplate.size()){
-        return mTemplate[mCurrentIndex];
+    if ((mCurrentReviewIndex >= 0) && (mCurrentReviewIndex < mReviewTemplate.size())) {
+        return (mReviewTemplate[mCurrentReviewIndex]);
     }
-    return nullptr;
+    return (nullptr);
 }
 
-void GTemplateManager::setCurrentTemplate(GTemplate *t)
-{
-    int index = mTemplate.indexOf(t);
-    if(index >= 0){
-        mCurrentIndex = index;
-        emit templateChanged(t);
-    }
-}
 
-void GTemplateManager::setCurrentTemplate(int index)
+void GTemplateManager::setCurrentReviewTemplate(GTemplate *t)
 {
-    if(index >= 0 && index < mTemplate.size()){
-        mCurrentIndex = index;
-        emit templateChanged(getCurrentTemplate());
+    int index = mReviewTemplate.indexOf(t);
+
+    if (index >= 0) {
+        mCurrentReviewIndex = index;
+        emit reviewTemplateChanged(t);
     }
 }
 
-int GTemplateManager::getTemplateCount() const
+
+void GTemplateManager::setCurrentReviewTemplate(int index)
 {
-    return mTemplate.size();
+    if ((index >= 0) && (index < mReviewTemplate.size())) {
+        mCurrentReviewIndex = index;
+        emit reviewTemplateChanged(getCurrentReviewTemplate());
+    }
 }
+
+
+int GTemplateManager::getReviewTemplateCount() const
+{
+    return (mReviewTemplate.size());
+}
+
+
+int GTemplateManager::loadMonitorTemplates(const QString& path)
+{
+    deleteMonitorTemplates();
+    QDir dir(path);
+    QStringList xmlfilelist = dir.entryList(QDir::NoDotAndDotDot|QDir::Files);
+
+    for (const QString& p : xmlfilelist)
+    {
+        qDebug() << dir.path() + QDir::separator() + p;
+        QScopedPointer<GTemplate> tp(new GTemplate(this));
+        if (tp->load(dir.path() + QDir::separator() + p)) {
+            mMonitorTemplate.append(tp.take());
+        }
+    }
+    return (mMonitorTemplate.size());
+}
+
+
+QList<GTemplate *> GTemplateManager::getAllMonitorTemplates() const
+{
+    return (mMonitorTemplate);
+}
+
 
 /**
  * @brief 删除所有模板
  */
-void GTemplateManager::deleteTemplates()
+void GTemplateManager::deleteReviewTemplates()
 {
-    for (auto i : mTemplate)
+    for (auto i : mReviewTemplate)
     {
         i->deleteLater();
     }
-    mCurrentIndex = -1;
-    mTemplate.clear();
+    mCurrentReviewIndex = -1;
+    mReviewTemplate.clear();
+}
+
+
+void GTemplateManager::deleteMonitorTemplates()
+{
+    for (auto i : mMonitorTemplate)
+    {
+        i->deleteLater();
+    }
+    mCurrentMonitorIndex = -1;
+    mMonitorTemplate.clear();
 }

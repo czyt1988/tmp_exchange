@@ -8,6 +8,7 @@
 #include "SARibbonGalleryGroup.h"
 #include "SACustomPlot.h"
 #include "GBigDataAPI.h"
+#include "GListAllMonitorDialog.h"
 const QString c_template_path = "./template";
 MainWindow::MainWindow(QWidget *parent) :
     SARibbonMainWindow(parent),
@@ -15,8 +16,8 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     //默认选中第一个模板
     init();
-    if (GTemplateManager::getInstance()->getTemplateCount() > 0) {
-        GTemplateManager::getInstance()->setCurrentTemplate(0);
+    if (GTemplateManager::getInstance()->getReviewTemplateCount() > 0) {
+        GTemplateManager::getInstance()->setCurrentReviewTemplate(0);
         SARibbonGalleryGroup *gallgroup = ui->galleryDataTemplate->currentViewGroup();
 
         if (gallgroup) {
@@ -25,6 +26,7 @@ MainWindow::MainWindow(QWidget *parent) :
     }
     ribbonBar()->setRibbonStyle(SARibbonBar::WpsLiteStyleTwoRow);
     showMaximized();
+    ui->dockWidgetPlotSet->hide();
 //    ui->projectArchivesWidget->setProjectID(1293569);
 }
 
@@ -32,7 +34,7 @@ MainWindow::MainWindow(QWidget *parent) :
 void MainWindow::init()
 {
     //加载模板
-    GTemplateManager::getInstance()->loadTemplates(c_template_path);
+    GTemplateManager::getInstance()->loadReviewTemplates(c_template_path);
     SARibbonBar *ribbon = ribbonBar();
 
     ui->tabWidget = new QTabWidget(this);
@@ -80,7 +82,9 @@ void MainWindow::init()
     ui->dockWidgetPlotSet->setWidget(ui->treeviewPlotSet);
     this->addDockWidget(Qt::RightDockWidgetArea, ui->dockWidgetPlotSet);
 
+
     ui->projectArchivesWidget = new GProjectArchivesWidget();
+    ui->projectArchivesWidget->setupAPI(GLOBAL_BIGDATA_API_PTR);
     ui->tabWidget->addTab(ui->projectArchivesWidget
         , QIcon(":/icon/icon/tabArchives.svg")
         , QStringLiteral("档案"));
@@ -168,7 +172,9 @@ void MainWindow::init()
     ui->actionFigureInstallYTracer->setObjectName(QString::fromUtf8("actionFigureInstallYTracer"));
     ui->actionFigureInstallYTracer->setIcon(QIcon(":/icon/icon/chartYTracer.svg"));
     ui->actionFigureInstallYTracer->setCheckable(true);
-
+    ui->actionAllMonitorList = new QAction(this);
+    ui->actionAllMonitorList->setObjectName(QString::fromUtf8("actionAllMonitorList"));
+    ui->actionAllMonitorList->setIcon(QIcon(":/icon/icon/allMonitorList.svg"));
     //建立ribbon
     //categoryMain
     ui->categoryMain = new SARibbonCategory();
@@ -188,7 +194,7 @@ void MainWindow::init()
 
     ui->pannelMainDataTemplate = new SARibbonPannel();
     ui->galleryDataTemplate = new SARibbonGallery(ui->pannelMainDataTemplate);
-    QList<GTemplate *> temps = GTemplateManager::getInstance()->getAllTemplates();
+    QList<GTemplate *> temps = GTemplateManager::getInstance()->getAllReviewTemplates();
 
     for (GTemplate *t : temps)
     {
@@ -224,6 +230,12 @@ void MainWindow::init()
     ui->pannelFigureOpetion->addLargeAction(ui->actionFigureLegendSelect);
     ui->pannelFigureOpetion->addLargeAction(ui->actionFigureInstallYTracer);
     ui->categoryFigure->addPannel(ui->pannelFigureOpetion);
+    //categoryMonitor
+    ui->categoryMonitor = new SARibbonCategory(this);
+    ribbon->addCategoryPage(ui->categoryMonitor);
+    ui->pannelMonitor = new SARibbonPannel(this);
+    ui->pannelMonitor->addLargeAction(ui->actionAllMonitorList);
+    ui->categoryMonitor->addPannel(ui->pannelMonitor);
     //组建立ribbon界面
 
     //
@@ -247,7 +259,7 @@ void MainWindow::init()
     connect(IOManager, &GHvacIOManager::message, this, &MainWindow::onMessage);
     connect(IOManager, &GHvacIOManager::openFailed, this, &MainWindow::onOpenFailed);
     connect(IOManager, &GHvacIOManager::hasGetProjectID, ui->projectArchivesWidget, &GProjectArchivesWidget::setProjectID);
-    connect(TemplateManager, &GTemplateManager::templateChanged, this, &MainWindow::onTemplateChanged);
+    connect(TemplateManager, &GTemplateManager::reviewTemplateChanged, this, &MainWindow::onReviewTemplateChanged);
     connect(ui->projectArchivesWidget, &GProjectArchivesWidget::message, this, &MainWindow::onMessage);
     connect(ui->dataReviewWidget, &GDataReviewWidget::message, this, &MainWindow::onMessage);
     connect(ui->widgetFaule, &GFaultWidget::indexReques, ui->dataReviewWidget, &GDataReviewWidget::toIndex);
@@ -268,6 +280,7 @@ void MainWindow::init()
     connect(ui->actionFigureAxesSelect, &QAction::triggered, this, &MainWindow::onActionFigureAxesSelectTriggered);
     connect(ui->actionFigureLegendSelect, &QAction::triggered, this, &MainWindow::onActionFigureLegendSelectTriggered);
     connect(ui->actionFigureInstallYTracer, &QAction::triggered, this, &MainWindow::onActionFigureInstallYTracerTriggered);
+    connect(ui->actionAllMonitorList, &QAction::triggered, this, &MainWindow::onActionAllMonitorListTriggered);
     //文本设置
     ui->retranslateUi(this);
 }
@@ -281,13 +294,15 @@ void MainWindow::UI::retranslateUi(MainWindow *w)
     dockWidgetPlotSet->setWindowTitle(QStringLiteral("绘图设置"));
     w->ribbonBar()->applicationButton()->setText(QStringLiteral("GREE"));
     categoryMain->setCategoryName(QStringLiteral("主页"));
-    categoryDataView->setCategoryName(QStringLiteral("回放"));
-    categoryFigure->setCategoryName(QStringLiteral("绘图"));
+    categoryDataView->setCategoryName(QStringLiteral("历史回放"));
+    categoryFigure->setCategoryName(QStringLiteral("历史绘图"));
+    categoryMonitor->setCategoryName(QStringLiteral("实时监控"));
     pannelMainFile->setPannelName(QStringLiteral("文件"));
     pannelMainWindowList->setPannelName(QStringLiteral("窗口"));
     pannelMainDataTemplate->setPannelName(QStringLiteral("数据模板"));
     pannelDataViewOpetion->setPannelName(QStringLiteral("回放操作"));
     pannelFigureOpetion->setPannelName(QStringLiteral("绘图操作"));
+    pannelMonitor->setPannelName(QStringLiteral("监控信息"));
     //action
     actionOpen->setText(QStringLiteral("打开"));
     actionArchivesWindow->setText(QStringLiteral("档案视图"));
@@ -307,6 +322,7 @@ void MainWindow::UI::retranslateUi(MainWindow *w)
     actionFigureAxesSelect->setText(QStringLiteral("坐标轴拖动"));
     actionFigureLegendSelect->setText(QStringLiteral("图例可选择"));
     actionFigureInstallYTracer->setText(QStringLiteral("y值跟踪"));
+    actionAllMonitorList->setText(QStringLiteral("监控列表"));
 }
 
 
@@ -354,7 +370,7 @@ void MainWindow::onFileReaded(GHvacDataInfo data)
 }
 
 
-void MainWindow::onTemplateChanged(GTemplate *temp)
+void MainWindow::onReviewTemplateChanged(GTemplate *temp)
 {
     ui->dataReviewWidget->setTemplate(temp);
     ui->widgetFaule->setTemplate(temp);
@@ -449,7 +465,7 @@ void MainWindow::onGalleryTemplateActionTriggered(QAction *action)
 {
     int index = ui->templateActionList.indexOf(action);
 
-    GTemplateManager::getInstance()->setCurrentTemplate(index);
+    GTemplateManager::getInstance()->setCurrentReviewTemplate(index);
 }
 
 
@@ -554,6 +570,25 @@ void MainWindow::onActionFigureInstallYTracerTriggered(bool c)
         ui->figureWidget->figure()->installYValueTracer();
     }else{
         ui->figureWidget->figure()->uninstallYValueTracer();
+    }
+}
+
+
+/**
+ * @brief 例举所有监控
+ */
+void MainWindow::onActionAllMonitorListTriggered()
+{
+    GListAllMonitorDialog dlg(this);
+
+    dlg.setupAPI(GLOBAL_BIGDATA_API_PTR);
+    dlg.updateInfo();
+    if (QDialog::Accepted == dlg.exec()) {
+        QString mac = dlg.getSelectMac();
+        int proid = dlg.getSelectProjectID();
+        qDebug() << "select mac :" << mac << " id:" << proid;
+        //工程档案设置
+        ui->projectArchivesWidget->setProjectID(proid);
     }
 }
 
