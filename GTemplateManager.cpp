@@ -100,6 +100,41 @@ QList<GTemplate *> GTemplateManager::getAllMonitorTemplates() const
 }
 
 
+GTemplate *GTemplateManager::getCurrentMonitorTemplate() const
+{
+    if ((mCurrentMonitorIndex >= 0) && (mCurrentMonitorIndex < mMonitorTemplate.size())) {
+        return (mMonitorTemplate[mCurrentMonitorIndex]);
+    }
+    return (nullptr);
+}
+
+
+void GTemplateManager::setCurrentMonitorTemplate(GTemplate *t)
+{
+    int index = mMonitorTemplate.indexOf(t);
+
+    if (index >= 0) {
+        mCurrentMonitorIndex = index;
+        emit monitorTemplateChanged(t);
+    }
+}
+
+
+void GTemplateManager::setCurrentMonitorTemplate(int index)
+{
+    if ((index >= 0) && (index < mMonitorTemplate.size())) {
+        mCurrentMonitorIndex = index;
+        emit monitorTemplateChanged(getCurrentMonitorTemplate());
+    }
+}
+
+
+int GTemplateManager::getMonitorTemplateCount() const
+{
+    return (mMonitorTemplate.size());
+}
+
+
 /**
  * @brief 删除所有模板
  */

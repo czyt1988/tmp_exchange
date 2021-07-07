@@ -27,7 +27,6 @@ GDataReviewWidget::GDataReviewWidget(QWidget *parent) :
     ui->splitterModuleAndIdu->setStretchFactor(1, 1);
     setStopMode();
     setSpeed(Speed1x);
-    showMaximized();
 }
 
 

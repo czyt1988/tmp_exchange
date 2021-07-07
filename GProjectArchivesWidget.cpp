@@ -50,27 +50,27 @@ void GProjectArchivesWidget::setProjectID(int proid)
 }
 
 
-void GProjectArchivesWidget::setupAPI(GBigDataAPI *api)
+void GProjectArchivesWidget::setupAPI(GAPIManager *api)
 {
     if ((api == m_api) || (nullptr == api)) {
         return;
     }
 
     if (!m_api.isNull()) {
-        disconnect(m_api.data(), &GBigDataAPI::projectInfos, this, &GProjectArchivesWidget::onRecProjectInfo);
-        disconnect(m_api.data(), &GBigDataAPI::projectFaults, this, &GProjectArchivesWidget::onRecProjectFaults);
-        disconnect(m_api.data(), &GBigDataAPI::projectMacChangeHistory, this, &GProjectArchivesWidget::onRecProjectMacChangeHistory);
-        disconnect(m_api.data(), &GBigDataAPI::produceInfo, this, &GProjectArchivesWidget::onRecProduceInfo);
-        disconnect(m_api.data(), &GBigDataAPI::installInfo, this, &GProjectArchivesWidget::onRecInstallInfo);
-        disconnect(m_api.data(), &GBigDataAPI::ping, this, &GProjectArchivesWidget::onRecPing);
+        disconnect(m_api.data(), &GAPIManager::projectInfos, this, &GProjectArchivesWidget::onRecProjectInfo);
+        disconnect(m_api.data(), &GAPIManager::projectFaults, this, &GProjectArchivesWidget::onRecProjectFaults);
+        disconnect(m_api.data(), &GAPIManager::projectMacChangeHistory, this, &GProjectArchivesWidget::onRecProjectMacChangeHistory);
+        disconnect(m_api.data(), &GAPIManager::produceInfo, this, &GProjectArchivesWidget::onRecProduceInfo);
+        disconnect(m_api.data(), &GAPIManager::installInfo, this, &GProjectArchivesWidget::onRecInstallInfo);
+        disconnect(m_api.data(), &GAPIManager::ping, this, &GProjectArchivesWidget::onRecPing);
     }
     m_api = api;
-    connect(api, &GBigDataAPI::projectInfos, this, &GProjectArchivesWidget::onRecProjectInfo);
-    connect(api, &GBigDataAPI::projectFaults, this, &GProjectArchivesWidget::onRecProjectFaults);
-    connect(api, &GBigDataAPI::projectMacChangeHistory, this, &GProjectArchivesWidget::onRecProjectMacChangeHistory);
-    connect(api, &GBigDataAPI::produceInfo, this, &GProjectArchivesWidget::onRecProduceInfo);
-    connect(api, &GBigDataAPI::installInfo, this, &GProjectArchivesWidget::onRecInstallInfo);
-    connect(api, &GBigDataAPI::ping, this, &GProjectArchivesWidget::onRecPing);
+    connect(api, &GAPIManager::projectInfos, this, &GProjectArchivesWidget::onRecProjectInfo);
+    connect(api, &GAPIManager::projectFaults, this, &GProjectArchivesWidget::onRecProjectFaults);
+    connect(api, &GAPIManager::projectMacChangeHistory, this, &GProjectArchivesWidget::onRecProjectMacChangeHistory);
+    connect(api, &GAPIManager::produceInfo, this, &GProjectArchivesWidget::onRecProduceInfo);
+    connect(api, &GAPIManager::installInfo, this, &GProjectArchivesWidget::onRecInstallInfo);
+    connect(api, &GAPIManager::ping, this, &GProjectArchivesWidget::onRecPing);
 }
 
 

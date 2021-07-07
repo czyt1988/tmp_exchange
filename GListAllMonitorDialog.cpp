@@ -19,17 +19,17 @@ GListAllMonitorDialog::~GListAllMonitorDialog()
 }
 
 
-void GListAllMonitorDialog::setupAPI(GBigDataAPI *api)
+void GListAllMonitorDialog::setupAPI(GAPIManager *api)
 {
     if ((api == m_api) || (nullptr == api)) {
         return;
     }
 
     if (!m_api.isNull()) {
-        disconnect(m_api.data(), &GBigDataAPI::listAllMonitorInfos, this, &GListAllMonitorDialog::onRecAllMonitorInfos);
+        disconnect(m_api.data(), &GAPIManager::listAllMonitorInfos, this, &GListAllMonitorDialog::onRecAllMonitorInfos);
     }
     m_api = api;
-    connect(api, &GBigDataAPI::listAllMonitorInfos, this, &GListAllMonitorDialog::onRecAllMonitorInfos);
+    connect(api, &GAPIManager::listAllMonitorInfos, this, &GListAllMonitorDialog::onRecAllMonitorInfos);
 }
 
 

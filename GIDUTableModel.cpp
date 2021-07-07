@@ -3,6 +3,7 @@
 #include <numeric>
 GIDUTableModel::GIDUTableModel(QObject *par) : QAbstractTableModel(par)
 {
+    mTable.setMode(GTable::ExpandMode);
 }
 
 
@@ -73,34 +74,6 @@ const QList<GNodeInfo>& GIDUTableModel::getNodeInfo() const
 }
 
 
-void GIDUTableModel::updateValue(const QList<GNodeInfo>& value)
-{
-    beginResetModel();
-    if (value.isEmpty()) {
-        qDebug() << QStringLiteral("传入空的list");
-        return;
-    }
-    if (mTable.rowCount() <= 0) {
-        qDebug() << QStringLiteral("table 为空");
-        return;
-    }
-    QString canip = value.first().mDisplayValue;
-    int r = mTable.nameToIndex(canip);
-
-    if (r < 0) {
-        qDebug() << QStringLiteral("未能找到canip:%1").arg(canip);
-        return;
-    }
-    int s = qMin(value.size(), mTable.columnCount());
-
-    for (int i = 0; i < s; ++i)
-    {
-        mTable[r][i] = value[i].mDisplayValue;
-    }
-    endResetModel();
-}
-
-
 void GIDUTableModel::updateValue(int canip, const QList<GNodeInfo>& value)
 {
     beginResetModel();
@@ -108,16 +81,15 @@ void GIDUTableModel::updateValue(int canip, const QList<GNodeInfo>& value)
         qDebug() << QStringLiteral("传入空的list");
         return;
     }
-    if (mTable.rowCount() <= 0) {
-        qDebug() << QStringLiteral("table 为空");
-        return;
-    }
     QString canipstr = QString::number(canip);
     int r = mTable.nameToIndex(canipstr);
 
     if (r < 0) {
-        qDebug() << QStringLiteral("未能找到canip:%1").arg(canip);
-        return;
+        //插入一个canip
+        GTable::SeriesPtr ser = GTable::makeSeries(canipstr);
+        ser->resize(mData.size());
+        mTable.appendRow(ser);
+        r = mTable.nameToIndex(canipstr);
     }
     int s = qMin(value.size(), mTable.columnCount());
 

@@ -9,7 +9,8 @@
 #include "SACustomPlot.h"
 #include "GBigDataAPI.h"
 #include "GListAllMonitorDialog.h"
-const QString c_template_path = "./template";
+const QString c_review_template_path = "./template";
+const QString c_monitor_template_path = "./templateMonitor";
 MainWindow::MainWindow(QWidget *parent) :
     SARibbonMainWindow(parent),
     ui(new UI)
@@ -19,6 +20,14 @@ MainWindow::MainWindow(QWidget *parent) :
     if (GTemplateManager::getInstance()->getReviewTemplateCount() > 0) {
         GTemplateManager::getInstance()->setCurrentReviewTemplate(0);
         SARibbonGalleryGroup *gallgroup = ui->galleryDataTemplate->currentViewGroup();
+
+        if (gallgroup) {
+            gallgroup->selectByIndex(0);
+        }
+    }
+    if (GTemplateManager::getInstance()->getMonitorTemplateCount() > 0) {
+        GTemplateManager::getInstance()->setCurrentMonitorTemplate(0);
+        SARibbonGalleryGroup *gallgroup = ui->galleryMonitorTemplate->currentViewGroup();
 
         if (gallgroup) {
             gallgroup->selectByIndex(0);
@@ -34,7 +43,9 @@ MainWindow::MainWindow(QWidget *parent) :
 void MainWindow::init()
 {
     //加载模板
-    GTemplateManager::getInstance()->loadReviewTemplates(c_template_path);
+    GTemplateManager::getInstance()->loadReviewTemplates(c_review_template_path);
+    GTemplateManager::getInstance()->loadMonitorTemplates(c_monitor_template_path);
+
     SARibbonBar *ribbon = ribbonBar();
 
     ui->tabWidget = new QTabWidget(this);
@@ -84,7 +95,7 @@ void MainWindow::init()
 
 
     ui->projectArchivesWidget = new GProjectArchivesWidget();
-    ui->projectArchivesWidget->setupAPI(GLOBAL_BIGDATA_API_PTR);
+    ui->projectArchivesWidget->setupAPI(GLOBAL_API_MGR_PTR);
     ui->tabWidget->addTab(ui->projectArchivesWidget
         , QIcon(":/icon/icon/tabArchives.svg")
         , QStringLiteral("档案"));
@@ -96,6 +107,12 @@ void MainWindow::init()
     ui->tabWidget->addTab(ui->figureWidget
         , QIcon(":/icon/icon/tabChart.svg")
         , QStringLiteral("数据绘图"));
+
+    ui->monitorWidget = new GMonitorWidget();
+    ui->monitorWidget->setupAPI(GLOBAL_API_MGR_PTR);
+    ui->tabWidget->addTab(ui->monitorWidget
+        , QIcon(":/icon/icon/monitor.svg")
+        , QStringLiteral("远程监控"));
 
     //action
     ui->actionOpen = new QAction(this);
@@ -175,6 +192,9 @@ void MainWindow::init()
     ui->actionAllMonitorList = new QAction(this);
     ui->actionAllMonitorList->setObjectName(QString::fromUtf8("actionAllMonitorList"));
     ui->actionAllMonitorList->setIcon(QIcon(":/icon/icon/allMonitorList.svg"));
+    ui->actionStartStopMonitor = new QAction(this);
+    ui->actionStartStopMonitor->setObjectName(QString::fromUtf8("actionStartStopMonitor"));
+    ui->actionStartStopMonitor->setIcon(QIcon(":/icon/icon/start.svg"));
     //建立ribbon
     //categoryMain
     ui->categoryMain = new SARibbonCategory();
@@ -235,7 +255,29 @@ void MainWindow::init()
     ribbon->addCategoryPage(ui->categoryMonitor);
     ui->pannelMonitor = new SARibbonPannel(this);
     ui->pannelMonitor->addLargeAction(ui->actionAllMonitorList);
+    ui->pannelMonitor->addLargeAction(ui->actionStartStopMonitor);
+    ui->monitorMacWidgetContainer = new SARibbonLineWidgetContainer(ui->pannelMonitor);
+    ui->monitorMacLineEdit = new SARibbonLineEdit(ui->pannelMonitor);
+    ui->monitorMacWidgetContainer->setWidget(ui->monitorMacLineEdit);
+    ui->pannelMonitor->addWidget(ui->monitorMacWidgetContainer, SARibbonPannelItem::Small);
+    ui->monitorLastTime = new QLabel(ui->pannelMonitor);
+    ui->pannelMonitor->addWidget(ui->monitorLastTime, SARibbonPannelItem::Small);
     ui->categoryMonitor->addPannel(ui->pannelMonitor);
+
+    ui->pannelMonitorTemplate = new SARibbonPannel(this);
+    ui->galleryMonitorTemplate = new SARibbonGallery(ui->pannelMainDataTemplate);
+    temps = GTemplateManager::getInstance()->getAllMonitorTemplates();
+
+    for (GTemplate *t : temps)
+    {
+        QAction *a = new QAction(this);
+        a->setIcon(QIcon(":/icon/icon/template.svg"));
+        a->setText(t->name());
+        ui->templateMonitorActionList.append(a);
+    }
+    ui->galleryMonitorTemplate->addCategoryActions(QStringLiteral("模板"), ui->templateMonitorActionList);
+    ui->pannelMonitorTemplate->addWidget(ui->galleryMonitorTemplate, SARibbonPannelItem::Large);
+    ui->categoryMonitor->addPannel(ui->pannelMonitorTemplate);
     //组建立ribbon界面
 
     //
@@ -260,6 +302,7 @@ void MainWindow::init()
     connect(IOManager, &GHvacIOManager::openFailed, this, &MainWindow::onOpenFailed);
     connect(IOManager, &GHvacIOManager::hasGetProjectID, ui->projectArchivesWidget, &GProjectArchivesWidget::setProjectID);
     connect(TemplateManager, &GTemplateManager::reviewTemplateChanged, this, &MainWindow::onReviewTemplateChanged);
+    connect(TemplateManager, &GTemplateManager::monitorTemplateChanged, this, &MainWindow::onMonitorTemplateChanged);
     connect(ui->projectArchivesWidget, &GProjectArchivesWidget::message, this, &MainWindow::onMessage);
     connect(ui->dataReviewWidget, &GDataReviewWidget::message, this, &MainWindow::onMessage);
     connect(ui->widgetFaule, &GFaultWidget::indexReques, ui->dataReviewWidget, &GDataReviewWidget::toIndex);
@@ -281,6 +324,9 @@ void MainWindow::init()
     connect(ui->actionFigureLegendSelect, &QAction::triggered, this, &MainWindow::onActionFigureLegendSelectTriggered);
     connect(ui->actionFigureInstallYTracer, &QAction::triggered, this, &MainWindow::onActionFigureInstallYTracerTriggered);
     connect(ui->actionAllMonitorList, &QAction::triggered, this, &MainWindow::onActionAllMonitorListTriggered);
+    connect(ui->galleryMonitorTemplate, &SARibbonGallery::triggered, this, &MainWindow::onGalleryTemplateActionTriggered);
+    connect(ui->actionStartStopMonitor, &QAction::triggered, this, &MainWindow::onActionStartStopMonitorTriggered);
+    connect(GLOBAL_API_MGR_PTR, &GAPIManager::apiRequestMonitorData, this, &MainWindow::onUpdateMonitorLastTime);
     //文本设置
     ui->retranslateUi(this);
 }
@@ -323,6 +369,9 @@ void MainWindow::UI::retranslateUi(MainWindow *w)
     actionFigureLegendSelect->setText(QStringLiteral("图例可选择"));
     actionFigureInstallYTracer->setText(QStringLiteral("y值跟踪"));
     actionAllMonitorList->setText(QStringLiteral("监控列表"));
+    actionStartStopMonitor->setText(QStringLiteral("开始监控"));
+    monitorMacWidgetContainer->setPrefix(QStringLiteral("模块MAC"));
+    monitorLastTime->setText(QStringLiteral("监控持续时间"));
 }
 
 
@@ -360,11 +409,9 @@ void MainWindow::onFileReaded(GHvacDataInfo data)
     ui->dataReviewWidget->setData(data);
     //给故障窗口传递数据
     ui->widgetFaule->setData(data);
-//    ui->widgetFaule->setTemplate(ui->dataReviewWidget->getCurrentTemplate());
     ui->widgetFaule->updateFaultInfo();
     //给绘图窗口传递数据
     ui->figureWidget->setData(data);
-//    ui->dataPlotWidget->setTemplate(ui->dataReviewWidget->getCurrentTemplate());
     //显示标签
     ribbonBar()->showCategory(ui->categoryDataView);
 }
@@ -376,6 +423,12 @@ void MainWindow::onReviewTemplateChanged(GTemplate *temp)
     ui->widgetFaule->setTemplate(temp);
     ui->widgetFaule->updateFaultInfo();
     ui->figureWidget->setTemplate(temp);
+}
+
+
+void MainWindow::onMonitorTemplateChanged(GTemplate *temp)
+{
+    ui->monitorWidget->setTemplate(temp);
 }
 
 
@@ -581,7 +634,7 @@ void MainWindow::onActionAllMonitorListTriggered()
 {
     GListAllMonitorDialog dlg(this);
 
-    dlg.setupAPI(GLOBAL_BIGDATA_API_PTR);
+    dlg.setupAPI(GLOBAL_API_MGR_PTR);
     dlg.updateInfo();
     if (QDialog::Accepted == dlg.exec()) {
         QString mac = dlg.getSelectMac();
@@ -589,7 +642,45 @@ void MainWindow::onActionAllMonitorListTriggered()
         qDebug() << "select mac :" << mac << " id:" << proid;
         //工程档案设置
         ui->projectArchivesWidget->setProjectID(proid);
+        ui->tabWidget->setCurrentWidget(ui->monitorWidget);
+        ui->monitorWidget->setMac(mac);
+        onActionStartStopMonitorTriggered(false);
     }
+    ui->monitorMacLineEdit->setText(ui->monitorWidget->mac());
+}
+
+
+void MainWindow::onGalleryMonitorTemplateActionTriggered(QAction *action)
+{
+    int index = ui->templateMonitorActionList.indexOf(action);
+
+    GTemplateManager::getInstance()->setCurrentMonitorTemplate(index);
+}
+
+
+void MainWindow::onActionStartStopMonitorTriggered(bool c)
+{
+    Q_UNUSED(c);
+    if (ui->monitorWidget->isStart()) {
+        ui->monitorWidget->stopMonitor();
+        ui->actionStartStopMonitor->setIcon(QIcon(":/icon/icon/start.svg"));
+        ui->actionStartStopMonitor->setText(QStringLiteral("开始监控"));
+    }else{
+        if (ui->monitorWidget->startMonitor()) {
+            ui->actionStartStopMonitor->setIcon(QIcon(":/icon/icon/pause.svg"));
+            ui->actionStartStopMonitor->setText(QStringLiteral("停止监控"));
+        }
+    }
+    ui->monitorMacLineEdit->setText(ui->monitorWidget->mac());
+}
+
+
+void MainWindow::onUpdateMonitorLastTime(const QString& mac)
+{
+    Q_UNUSED(mac);
+    int min = ui->monitorWidget->lastMinute();
+
+    ui->monitorLastTime->setText(QStringLiteral("监控持续时间:%1分钟").arg(min));
 }
 
 

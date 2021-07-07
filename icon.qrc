@@ -37,5 +37,6 @@
         <file>icon/install.svg</file>
         <file>icon/produce.svg</file>
         <file>icon/allMonitorList.svg</file>
+        <file>icon/monitor.svg</file>
     </qresource>
 </RCC>

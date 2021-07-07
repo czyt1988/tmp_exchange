@@ -564,6 +564,7 @@ void SARowTable<T>::appendRow(SeriesPtr row)
 
     if ((s == m_columns) || (0 == m_columns)) {
         m_d.push_back(row);
+        m_columns = s;
     }else if (s < m_columns) {//在结尾补充
         row->resize(m_columns);
         m_d.push_back(row);

@@ -18,7 +18,7 @@ public:
     ~GProjectArchivesWidget();
 public slots:
     void setProjectID(int proid);
-    void setupAPI(GBigDataAPI *api);
+    void setupAPI(GAPIManager *api);
 
 protected:
     void changeEvent(QEvent *e);
@@ -44,7 +44,7 @@ signals:
 
 private:
     Ui::GProjectArchivesWidget *ui;
-    QPointer<GBigDataAPI> m_api;
+    QPointer<GAPIManager> m_api;
     QStandardItemModel *m_treeModel;
     GArchivesTableModel *m_tableModel;
     QString m_searchArg; //有可能是工程id，有可能是条码

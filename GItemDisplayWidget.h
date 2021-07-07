@@ -3,7 +3,7 @@
 
 
 #include <QtWidgets/QWidget>
-
+class QPaintEvent;
 
 namespace Ui {
 class GItemDisplayWidget;
@@ -21,10 +21,14 @@ public:
     void setSuffix(const QString& sf);
 
 protected:
+    void paintEvent(QPaintEvent *e) override;
+
+protected:
     void changeEvent(QEvent *e);
 
 private:
     Ui::GItemDisplayWidget *ui;
+    QBrush m_background;
 };
 
 #endif // GITEMDISPLAYWIDGET_H

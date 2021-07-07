@@ -25,9 +25,12 @@
 #include "SARibbonCategory.h"
 #include "SARibbonPannel.h"
 #include "SARibbonGallery.h"
+#include "SARibbonLineWidgetContainer.h"
+#include "SARibbonLineEdit.h"
 #include "GProjectArchivesWidget.h"
 #include <functional>
 #include "SACustomPlotTreeModel.h"
+#include "GMonitorWidget.h"
 #include <QTreeView>
 class MainWindow : public SARibbonMainWindow
 {
@@ -44,6 +47,7 @@ private slots:
     void onMessage(const QString& msg);
     void onFileReaded(GHvacDataInfo data);
     void onReviewTemplateChanged(GTemplate *temp);
+    void onMonitorTemplateChanged(GTemplate *temp);
     void onFaultWidgetIndexReques(int index);
 
     void onActionOpenTriggered();
@@ -66,6 +70,9 @@ private slots:
     void onActionFigureLegendSelectTriggered(bool c);
     void onActionFigureInstallYTracerTriggered(bool c);
     void onActionAllMonitorListTriggered();
+    void onGalleryMonitorTemplateActionTriggered(QAction *action);
+    void onActionStartStopMonitorTriggered(bool c);
+    void onUpdateMonitorLastTime(const QString& mac);
 
 private:
     void init();
@@ -91,7 +98,8 @@ public:
         QAction *actionFigureAxesSelect;
         QAction *actionFigureLegendSelect;
         QAction *actionFigureInstallYTracer;
-        QAction *actionAllMonitorList;///< 列举所有监控信息
+        QAction *actionAllMonitorList;          ///< 列举所有监控信息
+        QAction *actionStartStopMonitor;        ///< 监控控制
         QActionGroup *actionGroupRunDataViewSpeed;
         QWidget *centralwidget;
         QVBoxLayout *verticalLayout_3;
@@ -110,6 +118,7 @@ public:
         GFaultWidget *widgetFaule;
         GDataReviewWidget *dataReviewWidget;
         GPlotWidget *figureWidget;
+        GMonitorWidget *monitorWidget;
         SARibbonCategory *categoryMain;
         SARibbonCategory *categoryDataView;
         SARibbonCategory *categoryFigure;
@@ -121,7 +130,13 @@ public:
         SARibbonPannel *pannelDataViewOpetion;
         SARibbonPannel *pannelFigureOpetion;
         SARibbonPannel *pannelMonitor;
+        SARibbonPannel *pannelMonitorTemplate;
+        SARibbonLineWidgetContainer *monitorMacWidgetContainer;
+        SARibbonLineEdit *monitorMacLineEdit;
+        QLabel *monitorLastTime;
+        SARibbonGallery *galleryMonitorTemplate;
         QList<QAction *> templateActionList;
+        QList<QAction *> templateMonitorActionList;
         SACustomPlotTreeModel *plotTreeModel;
         void retranslateUi(MainWindow *w);
     };

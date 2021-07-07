@@ -20,7 +20,7 @@ class GListAllMonitorDialog : public QDialog
 public:
     explicit GListAllMonitorDialog(QWidget *parent = nullptr);
     ~GListAllMonitorDialog();
-    void setupAPI(GBigDataAPI *api);
+    void setupAPI(GAPIManager *api);
     void updateInfo();
 
     //获取选择的mac
@@ -42,7 +42,7 @@ private slots:
 
 private:
     Ui::GListAllMonitorDialog *ui;
-    QPointer<GBigDataAPI> m_api;
+    QPointer<GAPIManager> m_api;
     QStandardItemModel *m_tableModel;
 };
 

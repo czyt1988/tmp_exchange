@@ -23,7 +23,6 @@ public:
     const QList<GNodeInfo>& getNodeInfo() const;
 
     //必须和setNodeInfo的list一致
-    void updateValue(const QList<GNodeInfo>& value);
     void updateValue(int canip, const QList<GNodeInfo>& value);
     void update();
     void clear();

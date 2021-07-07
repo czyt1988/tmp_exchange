@@ -7,6 +7,8 @@ GModuleValueView::GModuleValueView(QWidget *parent) :
 {
     ui->setupUi(this);
     mLayout = new QGridLayout(this);
+    mLayout->setSpacing(0);
+    mLayout->setMargin(0);
     setBackgroundRole(QPalette::Base);
 }
 

@@ -19,6 +19,13 @@ public:
     int getReviewTemplateCount() const;
 
     //监控模板
+    int loadMonitorTemplates(const QString& path);
+    QList<GTemplate *> getAllMonitorTemplates() const;
+    GTemplate *getCurrentMonitorTemplate() const;
+    void setCurrentMonitorTemplate(GTemplate *t);
+    void setCurrentMonitorTemplate(int index);
+    int getMonitorTemplateCount() const;
+
 signals:
 
     /**
@@ -26,13 +33,17 @@ signals:
      * @param temp
      */
     void reviewTemplateChanged(GTemplate *temp);
+    void monitorTemplateChanged(GTemplate *temp);
 
 protected:
-    void deleteTemplates();
+    void deleteReviewTemplates();
+    void deleteMonitorTemplates();
 
 private:
     QList<GTemplate *> mReviewTemplate;
+    QList<GTemplate *> mMonitorTemplate;
     int mCurrentReviewIndex;
+    int mCurrentMonitorIndex;
 };
 #ifndef TemplateManager
 #define TemplateManager    GTemplateManager::getInstance()

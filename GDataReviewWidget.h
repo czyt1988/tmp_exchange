@@ -13,7 +13,7 @@ class GDataReviewWidget;
 }
 
 /**
- * @brief 空调数据回放窗口
+ * @brief 空调数据回放窗口/监控窗口
  */
 class GDataReviewWidget : public QWidget
 {
@@ -24,12 +24,19 @@ public:
     ~GDataReviewWidget();
     void setTemplate(GTemplate *t);
 
+    /**
+     * @brief 回放速度
+     */
     enum Speed {
         Speed1x		= 1
         , Speed2x	= 2
         , Speed3x	= 3
         , SpeedMax	= 4
     };
+
+    /**
+     * @brief 当前的模式
+     */
     enum Mode {
         NoneMode
         , StoppedMode
@@ -45,14 +52,14 @@ public:
     void setSpeed(Speed s);
 
 public slots:
-    // 开始打开文件，用于停止当前的timer
+    // 开始打开文件，用于停止当前的timer 在review模式下使用
     void startOpenReviewData();
 
-    //设置数据
+    //设置数据 在review模式下使用
     void setData(GHvacDataInfo datainfo);
 
     /**
-     * @brief 跳转到对应的索引(时间)
+     * @brief 跳转到对应的索引(时间) 在review模式下使用
      * @param i
      */
     void toIndex(int i);

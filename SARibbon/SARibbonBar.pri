@@ -38,7 +38,8 @@ SOURCES += \
     $$PWD/SARibbonQuickAccessBar.cpp \
     $$PWD/SARibbonCtrlContainer.cpp \
     $$PWD/SARibbonPannelLayout.cpp \
-    $$PWD/SARibbonPannelItem.cpp
+    $$PWD/SARibbonPannelItem.cpp\
+    $$PWD/SARibbonLineWidgetContainer.cpp
 
 HEADERS  += \
     $$PWD/SAFramelessHelper.h \
@@ -47,6 +48,7 @@ HEADERS  += \
     $$PWD/SARibbonCustomizeData.h \
     $$PWD/SARibbonCustomizeDialog.h \
     $$PWD/SARibbonCustomizeWidget.h \
+    $$PWD/SARibbonLineWidgetContainer.h \
     $$PWD/SARibbonMainWindow.h \
     $$PWD/SAWindowButtonGroup.h \
     $$PWD/SARibbonApplicationButton.h \
